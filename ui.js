@@ -13,20 +13,23 @@ const UI = {
 
         portfolio.forEach(asset => {
             const tr = document.createElement('tr');
+            const valClass = asset.isLiability ? 'text-muted' : '';
+            const valPrefix = asset.isLiability ? '-' : '';
+            
             tr.innerHTML = `
                 <td>
                     <div style="font-weight:bold">${asset.name}</div>
-                    <div class="small-text text-muted">${asset.type}</div>
+                    <div class="small-text text-muted">${asset.type} ${asset.ticker ? `(${asset.ticker})` : ''}</div>
                 </td>
                 <td class="clickable price-cell" data-id="${asset.id}" data-name="${asset.name}">${parseFloat(asset.currentPrice).toFixed(2)} ✎</td>
                 <td>${asset.units.toFixed(4)}</td>
                 <td>${(asset.totalCost / (asset.units || 1)).toFixed(2)}</td>
-                <td>${UI.formatCurrency(asset.currentValue)}</td>
+                <td class="${valClass}">${valPrefix}${UI.formatCurrency(asset.currentValue)}</td>
                 <td style="color: ${asset.absoluteReturn >= 0 ? 'var(--success)' : 'var(--error)'}">
                     ${UI.formatCurrency(asset.absoluteReturn)}<br>
                     <small>${UI.formatPct(asset.returnPct)}</small>
                 </td>
-                <td>${UI.formatPct((asset.currentValue / (window.totalWealth || 1)) * 100)}</td>
+                <td>${UI.formatPct((asset.currentValue / (window.totalAssets || 1)) * 100)}</td>
                 <td>
                     <button class="btn-text btn-del-asset" data-id="${asset.id}">×</button>
                 </td>
@@ -38,9 +41,12 @@ const UI = {
     renderLedger: (transactions, assets) => {
         const tbody = document.querySelector('#ledger-table tbody');
         tbody.innerHTML = '';
-        const sorted = [...transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
-
-        sorted.forEach(tx => {
+        
+        // Filter Data handled in app.js or here? 
+        // We assume 'transactions' passed here is already filtered or we filter if needed. 
+        // But app.js calls this. Let's just render what is passed.
+        
+        transactions.forEach(tx => {
             const asset = assets.find(a => a.id === tx.assetId);
             const tr = document.createElement('tr');
             const total = (tx.qty * tx.price).toFixed(2);
@@ -110,7 +116,10 @@ const UI = {
         const radius = width / 2 - 10;
         
         let startAngle = 0;
-        const total = portfolio.reduce((sum, a) => sum + a.currentValue, 0);
+        
+        // Filter out liabilities for allocation chart
+        const assets = portfolio.filter(a => !a.isLiability);
+        const total = assets.reduce((sum, a) => sum + a.currentValue, 0);
         
         const colors = ['#03dac6', '#bb86fc', '#cf6679', '#ffb74d', '#4fc3f7', '#aed581'];
         const legend = document.getElementById('allocation-legend');
@@ -118,7 +127,7 @@ const UI = {
 
         // Group by Type
         const byType = {};
-        portfolio.forEach(a => {
+        assets.forEach(a => {
             byType[a.type] = (byType[a.type] || 0) + a.currentValue;
         });
 
@@ -143,27 +152,27 @@ const UI = {
         });
     },
 
-    renderGoals: (goals) => {
+    renderGoals: (goalsWithProgress) => {
         const container = document.getElementById('goals-container');
         container.innerHTML = '';
         
-        goals.forEach(goal => {
-            // Simple projection: Assume total wealth contributes to goal (Simplified)
-            // Ideally, specific assets are linked to goals.
-            // Here we just visualize the Goal Card.
-            const progress = Math.min(100, (window.totalWealth / goal.targetAmount) * 100);
-            
+        goalsWithProgress.forEach(goal => {
             const el = document.createElement('div');
             el.className = 'card';
+            const remaining = Math.max(0, goal.targetAmount - goal.currentAmount);
+            
             el.innerHTML = `
                 <h3>${goal.name}</h3>
                 <p class="text-muted">Target: ${UI.formatCurrency(goal.targetAmount)}</p>
                 <div style="background:#333;height:8px;border-radius:4px;margin-top:10px;overflow:hidden">
-                    <div style="width:${progress}%;background:var(--secondary);height:100%"></div>
+                    <div style="width:${goal.progress}%;background:var(--secondary);height:100%"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-top:5px">
-                    <small>${progress.toFixed(1)}% Reached</small>
-                    <small>${UI.formatCurrency(goal.targetAmount - window.totalWealth)} Left</small>
+                    <small>${goal.progress.toFixed(1)}% Reached</small>
+                    <small>${UI.formatCurrency(remaining)} Left</small>
+                </div>
+                <div style="margin-top:5px;font-size:0.8rem;color:#666">
+                    ${goal.linkedAssets && goal.linkedAssets.length ? 'Linked to specific assets' : 'Linked to Total Wealth'}
                 </div>
             `;
             container.appendChild(el);

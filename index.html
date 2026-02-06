@@ -18,7 +18,7 @@
             <h1>WealthVault</h1>
             <p>This is a secure, offline-first application.</p>
             <p>To ensure data persistence and security, please install the app to your device.</p>
-            <button id="btn-install-pwa" class="btn-primary">Install App</button>
+            <button id="btn-install-pwa" class="btn-primary hidden">Install App</button>
             <p class="small-text">Or add to Home Screen manually</p>
         </div>
     </div>
@@ -101,6 +101,7 @@
             <section id="view-portfolio" class="view">
                 <div class="filter-bar">
                     <input type="text" id="asset-search" placeholder="Search assets...">
+                    <button class="btn-small" id="btn-update-prices">fetch prices</button>
                     <button class="btn-small" id="btn-add-asset">New Asset</button>
                 </div>
                 <div class="table-responsive card">
@@ -126,6 +127,33 @@
             <section id="view-ledger" class="view">
                 <div class="card">
                     <h3>Transaction History</h3>
+                    
+                    <!-- Filters -->
+                    <div class="ledger-filters grid-3 mb-2">
+                        <div class="form-group">
+                            <label>Date Range</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="date" id="filter-date-start">
+                                <input type="date" id="filter-date-end">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Asset</label>
+                            <select id="filter-asset">
+                                <option value="ALL">All Assets</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="filter-type">
+                                <option value="ALL">All Types</option>
+                                <option value="BUY">Buy</option>
+                                <option value="SELL">Sell</option>
+                                <option value="DIVIDEND">Dividend</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table id="ledger-table">
                             <thead>
@@ -177,6 +205,15 @@
 
             <!-- Settings View -->
             <section id="view-settings" class="view">
+                 <div class="card">
+                    <h3>API Configuration</h3>
+                    <p>Enter your Alpha Vantage API Key to enable automatic price updates.</p>
+                    <div class="form-group">
+                        <input type="text" id="api-key" placeholder="Enter Alpha Vantage API Key">
+                    </div>
+                    <button id="btn-save-key" class="btn-primary">Save Key</button>
+                </div>
+
                 <div class="card">
                     <h3>Data Management</h3>
                     <p>Your data is stored only on this device.</p>
@@ -190,7 +227,7 @@
                 </div>
                 <div class="card">
                     <h3>About</h3>
-                    <p>WealthVault v1.0.0 (Offline PWA)</p>
+                    <p>WealthVault v1.1.0 (Offline PWA)</p>
                 </div>
             </section>
 
@@ -248,6 +285,10 @@
                 <input type="text" id="asset-name" required placeholder="e.g. Apple Stock">
             </div>
             <div class="form-group">
+                <label>Ticker Symbol (Optional)</label>
+                <input type="text" id="asset-ticker" placeholder="e.g. AAPL">
+            </div>
+            <div class="form-group">
                 <label>Type</label>
                 <select id="asset-type">
                     <option value="STOCK">Stock</option>
@@ -256,6 +297,7 @@
                     <option value="GOLD">Gold</option>
                     <option value="CRYPTO">Crypto</option>
                     <option value="CASH">Cash</option>
+                    <option value="DEBT">Liability/Loan</option>
                 </select>
             </div>
             <div class="form-group">
@@ -284,6 +326,13 @@
             <div class="form-group">
                 <label>Target Amount</label>
                 <input type="number" step="100" id="goal-target" required>
+            </div>
+            <div class="form-group">
+                <label>Linked Assets (Optional)</label>
+                <div id="goal-assets-selector" class="checkbox-list">
+                    <!-- Populated dynamically -->
+                </div>
+                <small class="text-muted">Select assets contributing to this goal. Leave empty to use Total Net Worth.</small>
             </div>
             <div class="actions-row">
                 <button type="button" class="btn-text close-modal">Cancel</button>

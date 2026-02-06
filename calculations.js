@@ -8,7 +8,6 @@ const Finance = {
             let units = 0;
             let totalCost = 0; // Net invested amount
             let totalIncome = 0;
-            let costBasis = 0;
 
             // Sort by date asc
             assetTxs.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -28,20 +27,24 @@ const Finance = {
                     totalCost -= (avgCostPerUnit * qty); 
                     units -= qty;
                 } else if (tx.type === 'DIVIDEND') {
-                    totalIncome += (qty * price); // In dividend tx, qty might be 1 and price is amount
+                    totalIncome += (qty * price); 
                 }
             });
 
             const currentPrice = parseFloat(asset.currentPrice || 0);
             const currentValue = units * currentPrice;
-            const absoluteReturn = currentValue - totalCost; // Simplified P/L
+            const absoluteReturn = currentValue - totalCost; 
             const returnPct = totalCost > 0 ? (absoluteReturn / totalCost) * 100 : 0;
+            
+            // Check if liability
+            const isLiability = asset.type === 'DEBT';
 
             return {
                 ...asset,
                 units,
                 totalCost,
-                currentValue,
+                currentValue: isLiability ? currentValue : currentValue, // Value stored as positive, handled in net worth
+                isLiability,
                 totalIncome,
                 absoluteReturn,
                 returnPct
@@ -51,11 +54,10 @@ const Finance = {
         return summary;
     },
 
-    // XIRR Calculation using Newton-Raphson method
+    // XIRR Calculation
     xirr: (transactions, currentPortfolioValue) => {
-        // Prepare cashflows: Date and Amount. 
-        // Buys are negative (outflow), Sells/Dividends are positive (inflow).
-        // Current Value is a positive inflow happening TODAY.
+        // Exclude Debt transactions from XIRR ideally, or treat borrowing as inflow?
+        // Simplified: We treat standard buys as outflow, sells/income as inflow.
         
         const cashflows = [];
         
@@ -63,14 +65,18 @@ const Finance = {
             const date = new Date(tx.date);
             const amt = (parseFloat(tx.qty) * parseFloat(tx.price)) + parseFloat(tx.fees || 0);
             
+            // Note: If we added loan tracking, a loan "BUY" is actually getting cash (inflow).
+            // But currently the system treats BUY as spending money to get an asset.
+            // For DEBT assets, users likely log a BUY to represent taking on the debt (which doesn't fit the 'spending' model well).
+            // For this version, XIRR applies primarily to investment assets.
+            
             if (tx.type === 'BUY') {
                 cashflows.push({ date, amount: -amt });
             } else {
-                cashflows.push({ date, amount: amt }); // Sell or Dividend
+                cashflows.push({ date, amount: amt }); 
             }
         });
 
-        // Add terminal value
         cashflows.push({ date: new Date(), amount: currentPortfolioValue });
 
         if (cashflows.length < 2) return 0;
@@ -84,7 +90,6 @@ const Finance = {
         const tol = 1e-6;
         let x0 = guess;
 
-        // Sort by date
         cashflows.sort((a, b) => a.date - b.date);
         const startDate = cashflows[0].date;
 
@@ -103,24 +108,16 @@ const Finance = {
             if (Math.abs(x1 - x0) < tol) return x1;
             x0 = x1;
         }
-        return null; // Failed to converge
+        return null; 
     },
 
-    // Helper: Generate historical wealth points for chart
     generateWealthHistory: (transactions) => {
-        // Group by month
         const timeline = {};
         let cumulativeInvested = 0;
-
-        // Sort txs
         const sorted = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
         
         if(sorted.length === 0) return [];
 
-        // Basic approximation: Accumulate invested capital over time
-        // (Real wealth history requires historical prices which we don't have offline easily)
-        // We will plot "Invested Capital" vs "Now"
-        
         sorted.forEach(tx => {
             const date = tx.date.substring(0, 7); // YYYY-MM
             const amt = (parseFloat(tx.qty) * parseFloat(tx.price));
@@ -136,26 +133,64 @@ const Finance = {
 
     calculateHealthScore: (portfolio) => {
         let score = 100;
-        const totalValue = portfolio.reduce((sum, a) => sum + a.currentValue, 0);
-        if (totalValue === 0) return 0;
-
-        // Penalize for concentration
-        const maxAsset = Math.max(...portfolio.map(a => a.currentValue));
-        const concentration = maxAsset / totalValue;
         
+        const assets = portfolio.filter(a => !a.isLiability);
+        const liabilities = portfolio.filter(a => a.isLiability);
+
+        const totalAssets = assets.reduce((sum, a) => sum + a.currentValue, 0);
+        const totalDebt = liabilities.reduce((sum, a) => sum + a.currentValue, 0);
+        const netWorth = totalAssets - totalDebt;
+
+        if (totalAssets === 0) return 0;
+
+        // 1. Concentration Risk
+        const maxAsset = Math.max(...assets.map(a => a.currentValue));
+        const concentration = maxAsset / totalAssets;
         if (concentration > 0.5) score -= 20;
         if (concentration > 0.8) score -= 20;
 
-        // Penalize for lack of asset types
-        const types = new Set(portfolio.map(a => a.type));
+        // 2. Diversification (Asset Types)
+        const types = new Set(assets.map(a => a.type));
         if (types.size < 3) score -= 15;
 
-        // Reward for cash buffer
-        const cash = portfolio.find(a => a.type === 'CASH');
-        const cashRatio = cash ? cash.currentValue / totalValue : 0;
-        if (cashRatio < 0.05) score -= 10; // Too little cash
-        if (cashRatio > 0.40) score -= 10; // Too much cash drag
+        // 3. Cash Drag / Emergency Fund
+        const cash = assets.find(a => a.type === 'CASH');
+        const cashRatio = cash ? cash.currentValue / totalAssets : 0;
+        if (cashRatio < 0.05) score -= 10; 
+        if (cashRatio > 0.40) score -= 10; 
+
+        // 4. Debt Ratio (New)
+        const debtRatio = totalAssets > 0 ? totalDebt / totalAssets : 0;
+        if (debtRatio > 0.5) score -= 20;
+        if (debtRatio > 0.8) score -= 20;
+
+        // 5. Crypto/High Volatility Exposure (New)
+        const crypto = assets.filter(a => a.type === 'CRYPTO').reduce((s,a) => s + a.currentValue, 0);
+        if (totalAssets > 0 && (crypto / totalAssets) > 0.25) score -= 5;
 
         return Math.max(0, score);
+    },
+
+    calculateGoalProgress: (goals, portfolio, totalWealth) => {
+        return goals.map(goal => {
+            let currentAmount = 0;
+            
+            // If goal has specific linked assets, sum them up
+            if (goal.linkedAssets && goal.linkedAssets.length > 0) {
+                goal.linkedAssets.forEach(assetId => {
+                    const asset = portfolio.find(p => p.id === assetId);
+                    if (asset) currentAmount += asset.currentValue;
+                });
+            } else {
+                // Default to total wealth if no links
+                currentAmount = totalWealth;
+            }
+            
+            return {
+                ...goal,
+                currentAmount,
+                progress: Math.min(100, (currentAmount / goal.targetAmount) * 100)
+            };
+        });
     }
 };
