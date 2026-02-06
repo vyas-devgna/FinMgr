@@ -2,866 +2,3099 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="InvestMgr - Professional Personal Investment & Wealth Tracking PWA">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f172a">
-    <title>Aurelius Finance</title>
-    <!-- Favicon (Emoji as Icon) -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
-    
+    <meta name="apple-mobile-web-app-title" content="InvestMgr">
+    <title>InvestMgr - Investment Tracking</title>
     <style>
-        :root {
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --surface-light: #334155;
-            --primary: #38bdf8;
-            --primary-glow: rgba(56, 189, 248, 0.2);
-            --success: #10b981;
-            --danger: #f43f5e;
-            --warning: #f59e0b;
-            --text: #f8fafc;
-            --text-dim: #94a3b8;
-            --border: #334155;
-            --safe-area-top: env(safe-area-inset-top);
-            --safe-area-bottom: env(safe-area-inset-bottom);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --tertiary: #334155;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: #334155;
+            --surface: #0f172a;
+            --surface-elevated: #1e293b;
+            --surface-high: #334155;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
             display: flex;
             flex-direction: column;
+            padding-top: max(0px, env(safe-area-inset-top));
+            padding-bottom: max(0px, env(safe-area-inset-bottom));
+            padding-left: max(0px, env(safe-area-inset-left));
+            padding-right: max(0px, env(safe-area-inset-right));
         }
 
-        /* PWA Install Block */
-        #pwa-enforcer {
+        #install-blocker {
+            display: none;
             position: fixed;
             inset: 0;
-            background: var(--bg);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
             z-index: 9999;
-            display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            padding: 2rem;
+            padding: 20px;
         }
 
-        .hidden { display: none !important; }
-
-        .btn {
-            background: var(--primary);
-            color: var(--bg);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.1s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn:active { transform: scale(0.95); }
-        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
-        .btn-ghost { background: transparent; color: var(--text-dim); border: none; }
-
-        /* Navigation */
-        nav {
-            height: calc(60px + var(--safe-area-bottom));
-            background: var(--surface);
-            border-top: 1px solid var(--border);
+        #install-blocker.show {
             display: flex;
-            justify-content: space-around;
-            padding-bottom: var(--safe-area-bottom);
-            z-index: 100;
+        }
+
+        #install-blocker-content {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px 24px;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        #install-blocker-content h2 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        #install-blocker-content p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        #install-blocker-content button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 200ms;
+        }
+
+        #install-blocker-content button:hover {
+            background: var(--accent-light);
+        }
+
+        #app {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--primary);
+        }
+
+        #app-header {
+            background: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        #app-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        #app-header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .header-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 200ms;
+        }
+
+        .header-btn:hover {
+            background: var(--surface-high);
+            border-color: var(--accent);
+        }
+
+        #main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #nav {
+            background: var(--secondary);
+            border-right: 1px solid var(--border);
+            width: 200px;
+            overflow-y: auto;
+            padding: 8px;
         }
 
         .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-dim);
-            text-decoration: none;
-            font-size: 0.7rem;
-            gap: 4px;
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 12px 14px;
+            margin-bottom: 4px;
+            background: none;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 200ms;
         }
 
-        .nav-item.active { color: var(--primary); }
-        .nav-item svg { width: 20px; height: 20px; }
+        .nav-item:hover {
+            background: var(--surface-high);
+            color: var(--text-primary);
+        }
 
-        /* Main Content */
-        main {
+        .nav-item.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        #content-area {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem;
-            padding-top: calc(1.5rem + var(--safe-area-top));
-            -webkit-overflow-scrolling: touch;
+            padding: 16px;
         }
 
-        .screen { display: none; flex-direction: column; gap: 1.5rem; }
-        .screen.active { display: flex; }
+        .view {
+            display: none;
+            animation: fadeIn 300ms ease-out;
+        }
 
-        /* Cards & UI Elements */
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
         .card {
-            background: var(--surface);
-            border-radius: 20px;
-            padding: 1.25rem;
+            background: var(--secondary);
             border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 200ms;
         }
 
-        .stat-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
-        .stat-value { font-size: 1.75rem; font-weight: 800; margin-top: 4px; }
-        .stat-delta { font-size: 0.85rem; margin-top: 4px; }
-        .delta-pos { color: var(--success); }
-        .delta-neg { color: var(--danger); }
-
-        .chart-container { width: 100%; height: 200px; position: relative; margin: 1rem 0; }
-        canvas { width: 100% !important; height: 100% !important; }
-
-        /* List Items */
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border);
+        .card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
         }
-        .list-item:last-child { border-bottom: none; }
 
-        /* Forms */
-        .form-group { margin-bottom: 1.25rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+        .card-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .card-subtext {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .card-positive {
+            color: var(--success);
+        }
+
+        .card-negative {
+            color: var(--danger);
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         input, select, textarea {
             width: 100%;
-            background: var(--surface-light);
+            padding: 10px 12px;
+            background: var(--surface-elevated);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 0.85rem;
-            color: white;
-            font-size: 1rem;
-            outline: none;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 200ms;
         }
-        input:focus { border-color: var(--primary); }
 
-        /* Modals */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        button {
+            padding: 10px 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 200ms;
+        }
+
+        button:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--surface-high);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--tertiary);
+            border-color: var(--accent);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .table th {
+            background: var(--surface-high);
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .table tr:hover {
+            background: var(--surface-high);
+        }
+
         .modal {
+            display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
             z-index: 1000;
-            display: none;
-            align-items: flex-end;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
+
+        .modal.show {
+            display: flex;
+        }
+
         .modal-content {
-            background: var(--bg);
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
             width: 100%;
             max-height: 90vh;
-            border-top-left-radius: 30px;
-            border-top-right-radius: 30px;
-            padding: 2rem;
             overflow-y: auto;
-            border-top: 1px solid var(--border);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
         }
 
-        /* Grid */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        
-        .pill {
-            padding: 4px 10px;
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 200ms;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 16px 0;
+            background: var(--surface-elevated);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 12px;
+        }
+
+        .allocation-ring {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+
+        .allocation-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .transaction-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--surface-elevated);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .transaction-row.buy {
+            border-left: 3px solid var(--success);
+        }
+
+        .transaction-row.sell {
+            border-left: 3px solid var(--danger);
+        }
+
+        .transaction-row.income {
+            border-left: 3px solid var(--accent);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-asset {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .transaction-type {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .transaction-value {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .search-box {
+            margin-bottom: 16px;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 14px;
+            background: var(--surface-high);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
             border-radius: 6px;
-            font-size: 0.7rem;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 200ms;
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .goal-progress {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--surface-high);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 300ms ease-out;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            z-index: 2000;
+            animation: slideIn 300ms ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .monthly-snapshot {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .snapshot-card {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .snapshot-label {
+            font-size: 11px;
+            color: var(--text-secondary);
             font-weight: 600;
             text-transform: uppercase;
+            margin-bottom: 6px;
         }
-        .pill-blue { background: rgba(56, 189, 248, 0.2); color: var(--primary); }
 
-        /* Animation */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
+        .snapshot-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-mini {
+            background: var(--surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .stat-mini-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .stat-mini-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            #nav {
+                display: none;
+            }
+
+            #main-content {
+                flex-direction: column;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #content-area {
+                padding: 12px;
+            }
+
+            .quick-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .health-score {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 32px;
+            background: conic-gradient(var(--success) 0deg, var(--accent) 180deg, var(--danger) 360deg);
+            position: relative;
+        }
+
+        .health-score::after {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scrollable {
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        input[type="number"] {
+            font-family: 'Courier New', monospace;
+        }
+
+        .currency-input {
+            position: relative;
+        }
+
+        .currency-input::before {
+            content: '₹';
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .currency-input input {
+            padding-left: 28px;
+        }
+
+        .text-muted {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0;
+        }
     </style>
 </head>
 <body>
-
-    <!-- PWA Installation Enforcer -->
-    <div id="pwa-enforcer" class="hidden">
-        <div style="font-size: 5rem; margin-bottom: 2rem;">🏛️</div>
-        <h1 style="margin-bottom: 0.5rem;">Aurelius Finance</h1>
-        <p style="color: var(--text-dim); line-height: 1.6; margin-bottom: 2rem;">
-            A professional, offline-only wealth command center.<br>
-            Please install the app to your home screen to begin.
-        </p>
-        <button id="install-btn" class="btn">Install App</button>
-        <p id="install-instruction" class="hidden" style="margin-top: 2rem; font-size: 0.9rem; color: var(--primary);">
-            Tap the Share icon <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-12-4 4-4 4 4m-4-4v12"/></svg> and select "Add to Home Screen"
-        </p>
+    <div id="install-blocker">
+        <div id="install-blocker-content">
+            <h2>Install App</h2>
+            <p>InvestMgr works best as an installed app. Please install to use all features.</p>
+            <button onclick="app.handleInstallPrompt()">Install Now</button>
+        </div>
     </div>
 
-    <!-- Main Application UI -->
-    <main id="app-content">
-        <!-- Dashboard Screen -->
-        <div id="screen-dashboard" class="screen active">
-            <header>
-                <h2 style="margin:0">Net Worth</h2>
-                <div id="dashboard-total" class="stat-value">₹0.00</div>
-                <div id="dashboard-delta" class="stat-delta">Calculating...</div>
-            </header>
-
-            <div class="card">
-                <div class="stat-label">Allocation</div>
-                <div class="chart-container">
-                    <canvas id="allocation-chart"></canvas>
-                </div>
-                <div id="allocation-legend" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.8rem;"></div>
-            </div>
-
-            <div class="grid-2">
-                <div class="card">
-                    <div class="stat-label">Invested</div>
-                    <div id="dash-invested" class="stat-value" style="font-size: 1.2rem;">₹0</div>
-                </div>
-                <div class="card">
-                    <div class="stat-label">Avg XIRR</div>
-                    <div id="dash-xirr" class="stat-value" style="font-size: 1.2rem; color: var(--success);">0.0%</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="stat-label">Wealth Forecast (10Y)</div>
-                <div class="chart-container">
-                    <canvas id="forecast-chart"></canvas>
-                </div>
-                <div style="text-align: center; font-size: 0.75rem; color: var(--text-dim);">Based on 12% projected return</div>
+    <div id="app">
+        <div id="app-header">
+            <h1>💰 InvestMgr</h1>
+            <div id="app-header-controls">
+                <button class="header-btn" onclick="app.showSettingsModal()" title="Settings">⚙️</button>
+                <button class="header-btn" onclick="app.showBackupModal()" title="Backup">💾</button>
             </div>
         </div>
 
-        <!-- Assets Screen -->
-        <div id="screen-assets" class="screen">
-            <div style="display:flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin:0">Assets</h2>
-                <button class="btn" style="padding: 0.5rem 1rem;" onclick="UI.showModal('modal-asset')">+ Add</button>
-            </div>
-            <div id="asset-list" class="fade-in">
-                <!-- Assets will be rendered here -->
-            </div>
-        </div>
+        <div id="main-content">
+            <nav id="nav">
+                <button class="nav-item active" data-view="dashboard" onclick="app.switchView('dashboard')">📊 Dashboard</button>
+                <button class="nav-item" data-view="portfolio" onclick="app.switchView('portfolio')">📈 Portfolio</button>
+                <button class="nav-item" data-view="transactions" onclick="app.switchView('transactions')">📝 Transactions</button>
+                <button class="nav-item" data-view="goals" onclick="app.switchView('goals')">🎯 Goals</button>
+                <button class="nav-item" data-view="intelligence" onclick="app.switchView('intelligence')">🧠 Intelligence</button>
+                <button class="nav-item" data-view="analysis" onclick="app.switchView('analysis')">📊 Analysis</button>
+                <button class="nav-item" data-view="notes" onclick="app.switchView('notes')">📔 Notes</button>
+            </nav>
 
-        <!-- Transactions Screen -->
-        <div id="screen-transactions" class="screen">
-            <div style="display:flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin:0">Ledger</h2>
-                <button class="btn" style="padding: 0.5rem 1rem;" onclick="UI.showModal('modal-txn')">+ Entry</button>
-            </div>
-            <div id="txn-list" class="fade-in">
-                <!-- Transactions will be rendered here -->
-            </div>
-        </div>
+            <div id="content-area">
+                <!-- DASHBOARD VIEW -->
+                <div id="dashboard" class="view active">
+                    <div class="section">
+                        <h2 class="section-title">Wealth Overview</h2>
+                        <div class="dashboard-grid">
+                            <div class="card">
+                                <div class="card-title">Net Worth</div>
+                                <div class="card-value" id="nw-total">₹0</div>
+                                <div class="card-subtext" id="nw-change">+₹0 (0%)</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title">Total Invested</div>
+                                <div class="card-value" id="nw-invested">₹0</div>
+                                <div class="card-subtext" id="nw-invested-change">₹0 units</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title">Current Value</div>
+                                <div class="card-value" id="nw-current">₹0</div>
+                                <div class="card-subtext" id="nw-current-change">₹0 gain</div>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Analysis Screen -->
-        <div id="screen-analysis" class="screen">
-            <h2 style="margin:0">Intelligence</h2>
-            
-            <div class="card">
-                <div class="stat-label">Health Score</div>
-                <div id="health-score" style="font-size: 3rem; font-weight: 800; text-align: center; color: var(--primary);">--</div>
-                <div id="health-label" style="text-align: center; color: var(--text-dim);">Analyzing portfolio...</div>
-            </div>
+                    <div class="section">
+                        <h2 class="section-title">Monthly Progress</h2>
+                        <div class="monthly-snapshot">
+                            <div class="snapshot-card">
+                                <div class="snapshot-label">This Month Investment</div>
+                                <div class="snapshot-value" id="monthly-invested">₹0</div>
+                            </div>
+                            <div class="snapshot-card">
+                                <div class="snapshot-label">Monthly Passive Income</div>
+                                <div class="snapshot-value" id="monthly-passive">₹0</div>
+                            </div>
+                            <div class="snapshot-card">
+                                <div class="snapshot-label">Portfolio Return</div>
+                                <div class="snapshot-value card-positive" id="monthly-return">0%</div>
+                            </div>
+                            <div class="snapshot-card">
+                                <div class="snapshot-label">Target Progress</div>
+                                <div class="snapshot-value" id="monthly-target">0%</div>
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="card">
-                <div class="stat-label">Passive Income Forecast</div>
-                <div id="passive-income" class="stat-value">₹0.00 / mo</div>
-                <p style="font-size: 0.8rem; color: var(--text-dim);">Estimated dividends and interest income based on 4% yield rule.</p>
-            </div>
+                    <div class="section">
+                        <h2 class="section-title">Allocation</h2>
+                        <div class="card">
+                            <div class="allocation-ring">
+                                <canvas id="allocationChart" width="200" height="200"></canvas>
+                            </div>
+                            <div class="allocation-legend" id="allocationLegend"></div>
+                        </div>
+                    </div>
 
-            <div class="card">
-                <div class="stat-label">Risk Concentration</div>
-                <div id="risk-analysis" style="margin-top: 1rem; font-size: 0.9rem; line-height: 1.5;">
-                    Add assets to calculate risk.
+                    <div class="section">
+                        <h2 class="section-title">Wealth Timeline</h2>
+                        <div class="card">
+                            <div class="chart-container">
+                                <canvas id="wealthChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Quick Actions</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;">
+                            <button onclick="app.showTransactionModal('buy')" style="background: var(--success);">💵 Buy Asset</button>
+                            <button onclick="app.showTransactionModal('sell')" style="background: var(--danger);">🔴 Sell Asset</button>
+                            <button onclick="app.showTransactionModal('income')" style="background: var(--accent);">💰 Add Income</button>
+                            <button onclick="app.showRecurringModal()" style="background: var(--tertiary);">🔄 Add SIP</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PORTFOLIO VIEW -->
+                <div id="portfolio" class="view">
+                    <div class="section">
+                        <h2 class="section-title">Asset Allocation</h2>
+                        <div style="margin-bottom: 16px;">
+                            <button class="filter-btn active" onclick="app.setAssetTypeFilter('all')">All</button>
+                            <button class="filter-btn" onclick="app.setAssetTypeFilter('equity')">Equity</button>
+                            <button class="filter-btn" onclick="app.setAssetTypeFilter('mf')">Mutual Fund</button>
+                            <button class="filter-btn" onclick="app.setAssetTypeFilter('gold')">Gold</button>
+                            <button class="filter-btn" onclick="app.setAssetTypeFilter('fixed')">Fixed Income</button>
+                            <button class="filter-btn" onclick="app.setAssetTypeFilter('cash')">Cash</button>
+                        </div>
+                        <div id="portfolioAssets"></div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Add New Asset</h2>
+                        <button onclick="app.showAssetModal()">➕ Add Asset</button>
+                    </div>
+                </div>
+
+                <!-- TRANSACTIONS VIEW -->
+                <div id="transactions" class="view">
+                    <div class="section">
+                        <h2 class="section-title">Transaction Ledger</h2>
+                        <div class="search-box">
+                            <input type="text" id="txnSearch" placeholder="Search asset..." onkeyup="app.filterTransactions()">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <button class="filter-btn active" onclick="app.setTransactionTypeFilter('all')">All</button>
+                            <button class="filter-btn" onclick="app.setTransactionTypeFilter('buy')">Buy</button>
+                            <button class="filter-btn" onclick="app.setTransactionTypeFilter('sell')">Sell</button>
+                            <button class="filter-btn" onclick="app.setTransactionTypeFilter('income')">Income</button>
+                        </div>
+                        <div id="transactionsList"></div>
+                        <div style="margin-top: 16px;">
+                            <button onclick="app.undoLastTransaction()" class="btn-secondary">↶ Undo Last</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GOALS VIEW -->
+                <div id="goals" class="view">
+                    <div class="section">
+                        <h2 class="section-title">Investment Goals</h2>
+                        <div id="goalsList"></div>
+                        <button onclick="app.showGoalModal()" style="margin-top: 16px;">🎯 Add Goal</button>
+                    </div>
+                </div>
+
+                <!-- INTELLIGENCE VIEW -->
+                <div id="intelligence" class="view">
+                    <div class="section">
+                        <h2 class="section-title">Investment Health Score</h2>
+                        <div class="card">
+                            <div class="health-score" id="healthScore">--</div>
+                            <div id="healthDetails"></div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Key Insights</h2>
+                        <div id="intelligenceInsights"></div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Rebalancing Suggestions</h2>
+                        <div id="rebalancingSuggestions"></div>
+                    </div>
+                </div>
+
+                <!-- ANALYSIS VIEW -->
+                <div id="analysis" class="view">
+                    <div class="section">
+                        <h2 class="section-title">Performance Analysis</h2>
+                        <div class="quick-stats">
+                            <div class="stat-mini">
+                                <div class="stat-mini-label">Absolute Return</div>
+                                <div class="stat-mini-value card-positive" id="stat-absoluteReturn">+0%</div>
+                            </div>
+                            <div class="stat-mini">
+                                <div class="stat-mini-label">CAGR</div>
+                                <div class="stat-mini-value card-positive" id="stat-cagr">0%</div>
+                            </div>
+                            <div class="stat-mini">
+                                <div class="stat-mini-label">Max Drawdown</div>
+                                <div class="stat-mini-value card-negative" id="stat-drawdown">0%</div>
+                            </div>
+                            <div class="stat-mini">
+                                <div class="stat-mini-label">Win Rate</div>
+                                <div class="stat-mini-value" id="stat-winrate">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Diversification</h2>
+                        <div class="card">
+                            <div id="diversificationAnalysis"></div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Financial Independence Progress</h2>
+                        <div class="card">
+                            <div id="fiProgress"></div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2 class="section-title">Passive Income Forecast</h2>
+                        <div class="card">
+                            <div id="passiveIncomeForecast"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOTES VIEW -->
+                <div id="notes" class="view">
+                    <div class="section">
+                        <h2 class="section-title">Investment Journal</h2>
+                        <button onclick="app.showNoteModal()" style="margin-bottom: 16px;">📝 Add Note</button>
+                        <div id="notesList"></div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Settings Screen -->
-        <div id="screen-settings" class="screen">
-            <h2 style="margin:0">System</h2>
-            
-            <div class="card">
-                <div class="stat-label">Currency Symbol</div>
-                <input type="text" id="setting-currency" value="₹" onchange="UI.updateSettings()" style="margin-top: 10px;">
-            </div>
-
-            <div class="card">
-                <div class="stat-label">Data Management</div>
-                <div style="display:flex; flex-direction: column; gap: 10px; margin-top: 1rem;">
-                    <button class="btn btn-outline" onclick="Storage.exportData()">Backup to JSON</button>
-                    <button class="btn btn-outline" onclick="document.getElementById('import-file').click()">Restore from Backup</button>
-                    <input type="file" id="import-file" class="hidden" onchange="Storage.importData(event)">
-                    <button class="btn btn-ghost" onclick="Storage.clearAll()" style="color: var(--danger);">Factory Reset</button>
-                </div>
-            </div>
-
-            <div style="text-align: center; color: var(--text-dim); font-size: 0.8rem;">
-                Aurelius Finance v1.0.0<br>
-                Privacy First • Local Only • Offline Ready
-            </div>
-        </div>
-    </main>
-
-    <!-- Navigation Bar -->
-    <nav>
-        <a href="#dashboard" class="nav-item active" onclick="UI.navigate('dashboard')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Dash
-        </a>
-        <a href="#assets" class="nav-item" onclick="UI.navigate('assets')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-            Assets
-        </a>
-        <a href="#transactions" class="nav-item" onclick="UI.navigate('transactions')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Ledger
-        </a>
-        <a href="#analysis" class="nav-item" onclick="UI.navigate('analysis')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-            Intel
-        </a>
-        <a href="#settings" class="nav-item" onclick="UI.navigate('settings')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            System
-        </a>
-    </nav>
-
-    <!-- Modals -->
-    <div id="modal-asset" class="modal" onclick="if(event.target==this) UI.closeModal()">
+    <!-- TRANSACTION MODAL -->
+    <div id="transactionModal" class="modal">
         <div class="modal-content">
-            <h3>Add Asset</h3>
-            <form onsubmit="UI.handleAssetSubmit(event)">
+            <div class="modal-header">
+                <h2 id="txnModalTitle">Add Transaction</h2>
+                <button class="modal-close" onclick="app.closeModal('transactionModal')">×</button>
+            </div>
+            <form onsubmit="app.saveTransaction(event)">
                 <div class="form-group">
                     <label>Asset Name</label>
-                    <input type="text" id="asset-name" placeholder="e.g. HDFC Bank, Bitcoin" required>
+                    <input type="text" id="txnAsset" list="assetList" placeholder="Search or create" required>
+                    <datalist id="assetList"></datalist>
                 </div>
                 <div class="form-group">
-                    <label>Category</label>
-                    <select id="asset-category">
-                        <option value="Equity">Equity</option>
-                        <option value="Mutual Fund">Mutual Fund</option>
-                        <option value="Crypto">Crypto</option>
-                        <option value="Gold">Gold</option>
-                        <option value="Cash/FD">Cash/FD</option>
-                        <option value="Others">Others</option>
+                    <label>Type</label>
+                    <select id="txnType" required onchange="app.updateTransactionForm()">
+                        <option value="">Select Type</option>
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                        <option value="income">Income</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Current Value</label>
-                    <input type="number" step="0.01" id="asset-value" placeholder="0.00" required>
+                    <label>Quantity</label>
+                    <input type="number" id="txnQuantity" step="0.0001" placeholder="0" required>
                 </div>
-                <button type="submit" class="btn" style="width:100%">Save Asset</button>
+                <div class="form-group">
+                    <label>Price per Unit</label>
+                    <input type="number" id="txnPrice" step="0.01" placeholder="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="txnDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Notes (Optional)</label>
+                    <textarea id="txnNotes" rows="2" placeholder="Add notes..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="app.closeModal('transactionModal')">Cancel</button>
+                    <button type="submit">Save Transaction</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <div id="modal-txn" class="modal" onclick="if(event.target==this) UI.closeModal()">
+    <!-- ASSET MODAL -->
+    <div id="assetModal" class="modal">
         <div class="modal-content">
-            <h3>New Transaction</h3>
-            <form onsubmit="UI.handleTxnSubmit(event)">
+            <div class="modal-header">
+                <h2>Add Asset</h2>
+                <button class="modal-close" onclick="app.closeModal('assetModal')">×</button>
+            </div>
+            <form onsubmit="app.saveAsset(event)">
                 <div class="form-group">
-                    <label>Asset</label>
-                    <select id="txn-asset-id" required></select>
+                    <label>Asset Name</label>
+                    <input type="text" id="assetName" placeholder="e.g., Reliance, Gold, NIFTY50" required>
                 </div>
                 <div class="form-group">
                     <label>Type</label>
-                    <select id="txn-type">
-                        <option value="Buy">Buy (Investment)</option>
-                        <option value="Sell">Sell (Withdrawal)</option>
-                        <option value="Income">Income (Dividend/Interest)</option>
+                    <select id="assetType" required>
+                        <option value="equity">Equity</option>
+                        <option value="mf">Mutual Fund</option>
+                        <option value="gold">Gold</option>
+                        <option value="fixed">Fixed Income</option>
+                        <option value="cash">Cash</option>
+                        <option value="crypto">Crypto</option>
+                        <option value="other">Other</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Amount</label>
-                    <input type="number" step="0.01" id="txn-amount" placeholder="0.00" required>
+                    <label>Current Price</label>
+                    <input type="number" id="assetPrice" step="0.01" placeholder="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Notes (Optional)</label>
+                    <textarea id="assetNotes" rows="2" placeholder="Add notes..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="app.closeModal('assetModal')">Cancel</button>
+                    <button type="submit">Add Asset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GOAL MODAL -->
+    <div id="goalModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Goal</h2>
+                <button class="modal-close" onclick="app.closeModal('goalModal')">×</button>
+            </div>
+            <form onsubmit="app.saveGoal(event)">
+                <div class="form-group">
+                    <label>Goal Name</label>
+                    <input type="text" id="goalName" placeholder="e.g., Retire at 40, House Down Payment" required>
+                </div>
+                <div class="form-group">
+                    <label>Target Amount</label>
+                    <input type="number" id="goalTarget" step="0.01" placeholder="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <input type="date" id="goalDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="goalPriority">
+                        <option value="high">High</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="goalNotes" rows="2" placeholder="Add notes..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="app.closeModal('goalModal')">Cancel</button>
+                    <button type="submit">Save Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RECURRING INVESTMENT MODAL -->
+    <div id="recurringModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add SIP / Recurring Investment</h2>
+                <button class="modal-close" onclick="app.closeModal('recurringModal')">×</button>
+            </div>
+            <form onsubmit="app.saveRecurring(event)">
+                <div class="form-group">
+                    <label>Asset Name</label>
+                    <input type="text" id="recurringAsset" list="assetList2" placeholder="Search or select" required>
+                    <datalist id="assetList2"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>Monthly Amount</label>
+                    <input type="number" id="recurringAmount" step="0.01" placeholder="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="recurringStart" required>
+                </div>
+                <div class="form-group">
+                    <label>End Date (Optional)</label>
+                    <input type="date" id="recurringEnd">
+                </div>
+                <div class="form-group">
+                    <label>Current Price (for avg calculation)</label>
+                    <input type="number" id="recurringPrice" step="0.01" placeholder="0" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="app.closeModal('recurringModal')">Cancel</button>
+                    <button type="submit">Save SIP</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close" onclick="app.closeModal('settingsModal')">×</button>
+            </div>
+            <div class="section">
+                <h3 style="font-size: 14px; margin-bottom: 12px;">Application Settings</h3>
+                <div class="form-group">
+                    <label>Annual Income (for FI calculation)</label>
+                    <input type="number" id="settingAnnualIncome" step="0.01" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Annual Expenses (for FI calculation)</label>
+                    <input type="number" id="settingAnnualExpenses" step="0.01" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Expected Annual Return %</label>
+                    <input type="number" id="settingExpectedReturn" step="0.01" value="12" placeholder="12">
+                </div>
+                <div class="form-group">
+                    <label>Inflation Rate %</label>
+                    <input type="number" id="settingInflationRate" step="0.01" value="6" placeholder="6">
+                </div>
+                <button onclick="app.saveSettings()" style="width: 100%;">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACKUP MODAL -->
+    <div id="backupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Backup & Restore</h2>
+                <button class="modal-close" onclick="app.closeModal('backupModal')">×</button>
+            </div>
+            <div class="section">
+                <h3 style="font-size: 14px; margin-bottom: 12px;">Export Data</h3>
+                <p class="text-muted">Download all your investment data as JSON file</p>
+                <button onclick="app.exportData()" style="width: 100%; margin-top: 12px;">📥 Export Data</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <h3 style="font-size: 14px; margin-bottom: 12px;">Import Data</h3>
+                <p class="text-muted">Restore data from previously exported JSON file</p>
+                <input type="file" id="importFile" accept=".json" style="margin-top: 12px;">
+                <button onclick="app.importData()" style="width: 100%; margin-top: 12px;">📤 Import Data</button>
+            </div>
+            <div class="divider"></div>
+            <div class="section">
+                <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--danger);">Danger Zone</h3>
+                <p class="text-muted">Clear all data and start fresh. This cannot be undone.</p>
+                <button onclick="if(confirm('Are you absolutely sure? This will delete all data.')) app.clearAllData()" class="btn-danger" style="width: 100%; margin-top: 12px;">🗑️ Clear All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTE MODAL -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Journal Entry</h2>
+                <button class="modal-close" onclick="app.closeModal('noteModal')">×</button>
+            </div>
+            <form onsubmit="app.saveNote(event)">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="noteTitle" placeholder="e.g., Market Analysis, Trade Decision" required>
                 </div>
                 <div class="form-group">
                     <label>Date</label>
-                    <input type="date" id="txn-date" required>
+                    <input type="date" id="noteDate" required>
                 </div>
-                <button type="submit" class="btn" style="width:100%">Post Transaction</button>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="noteCategory">
+                        <option value="thought">Thought</option>
+                        <option value="decision">Decision</option>
+                        <option value="analysis">Analysis</option>
+                        <option value="reminder">Reminder</option>
+                        <option value="review">Review</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea id="noteContent" rows="6" placeholder="Write your thoughts..." required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="app.closeModal('noteModal')">Cancel</button>
+                    <button type="submit">Save Note</button>
+                </div>
             </form>
         </div>
     </div>
 
     <script>
-        /**
-         * PWA & SYSTEM CORE
-         */
-        const App = {
-            id: 'aurelius-finance-v1',
-            currency: '₹',
-            init() {
-                this.setupPWA();
-                Storage.initDB().then(() => {
-                    this.loadSettings();
-                    UI.navigate('dashboard');
-                    UI.refreshAll();
-                });
+        // ==================== CORE APPLICATION ====================
+        const app = {
+            db: null,
+            isInstalled: false,
+            deferredPrompt: null,
+            currentAssetTypeFilter: 'all',
+            currentTransactionTypeFilter: 'all',
+            currentTransactionSearchTerm: '',
+
+            // ==================== INITIALIZATION ====================
+            async init() {
+                console.log('Initializing InvestMgr...');
                 
-                // Block if not standalone
-                if (!window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone) {
-                    document.getElementById('pwa-enforcer').classList.remove('hidden');
+                // Initialize IndexedDB
+                await this.initDB();
+                
+                // Register Service Worker
+                await this.registerServiceWorker();
+                
+                // Set up dynamic manifest
+                this.setupManifest();
+                
+                // Check install state
+                this.checkInstallState();
+                
+                // Set up event listeners
+                this.setupEventListeners();
+                
+                // Initialize default data
+                await this.initializeDefaultData();
+                
+                // Load and render data
+                await this.refreshDashboard();
+                
+                // Set today's date in forms
+                document.getElementById('txnDate').valueAsDate = new Date();
+                document.getElementById('recurringStart').valueAsDate = new Date();
+                document.getElementById('noteDate').valueAsDate = new Date();
+                
+                console.log('InvestMgr initialized successfully');
+            },
+
+            async initDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('InvestMgrDB', 1);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve();
+                    };
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        
+                        if (!db.objectStoreNames.contains('assets')) {
+                            const assetStore = db.createObjectStore('assets', { keyPath: 'id', autoIncrement: true });
+                            assetStore.createIndex('name', 'name', { unique: false });
+                        }
+                        
+                        if (!db.objectStoreNames.contains('transactions')) {
+                            const txnStore = db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
+                            txnStore.createIndex('assetId', 'assetId', { unique: false });
+                            txnStore.createIndex('date', 'date', { unique: false });
+                        }
+                        
+                        if (!db.objectStoreNames.contains('recurring')) {
+                            const recurStore = db.createObjectStore('recurring', { keyPath: 'id', autoIncrement: true });
+                            recurStore.createIndex('assetId', 'assetId', { unique: false });
+                        }
+                        
+                        if (!db.objectStoreNames.contains('goals')) {
+                            db.createObjectStore('goals', { keyPath: 'id', autoIncrement: true });
+                        }
+                        
+                        if (!db.objectStoreNames.contains('notes')) {
+                            const noteStore = db.createObjectStore('notes', { keyPath: 'id', autoIncrement: true });
+                            noteStore.createIndex('date', 'date', { unique: false });
+                        }
+                        
+                        if (!db.objectStoreNames.contains('snapshots')) {
+                            db.createObjectStore('snapshots', { keyPath: 'id', autoIncrement: true });
+                        }
+                        
+                        if (!db.objectStoreNames.contains('settings')) {
+                            db.createObjectStore('settings', { keyPath: 'key' });
+                        }
+                    };
+                });
+            },
+
+            async registerServiceWorker() {
+                if (!navigator.serviceWorker) return;
+                
+                try {
+                    // Create Service Worker blob
+                    const swCode = this.getServiceWorkerCode();
+                    const blob = new Blob([swCode], { type: 'application/javascript' });
+                    const swUrl = URL.createObjectURL(blob);
+                    
+                    // For actual deployment, we need to serve SW from same origin
+                    // For now, attempt registration with inline approach
+                    if ('serviceWorker' in navigator) {
+                        const registration = await navigator.serviceWorker.register(new URL(swUrl, location.href).href);
+                        console.log('Service Worker registered:', registration);
+                    }
+                } catch (error) {
+                    console.warn('Service Worker registration failed:', error);
+                    // Service Worker not critical, app works offline anyway with fallbacks
                 }
             },
-            setupPWA() {
-                // Dynamic Manifest
-                const manifest = {
-                    name: "Aurelius Finance",
-                    short_name: "Aurelius",
-                    start_url: ".",
-                    display: "standalone",
-                    background_color: "#0f172a",
-                    theme_color: "#0f172a",
-                    icons: [{
-                        src: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%230f172a%22/><text y=%22.9em%22 x=%225%22 font-size=%2280%22>🏛️</text></svg>",
-                        sizes: "192x192 512x512",
-                        type: "image/svg+xml",
-                        purpose: "any maskable"
-                    }]
-                };
-                const stringManifest = JSON.stringify(manifest);
-                const blob = new Blob([stringManifest], {type: 'application/json'});
-                const manifestURL = URL.createObjectURL(blob);
-                document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestURL}">`);
 
-                // Service Worker (Caching the single file)
-                const swCode = `
-                    const CACHE_NAME = 'aurelius-cache-v1';
-                    self.addEventListener('install', e => {
-                        e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
-                    });
-                    self.addEventListener('fetch', e => {
-                        e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-                    });
+            getServiceWorkerCode() {
+                return `
+                const CACHE_NAME = 'investmgr-v1';
+                const ASSETS_TO_CACHE = [
+                    '/',
+                    '/index.html'
+                ];
+                
+                self.addEventListener('install', (event) => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME).then((cache) => {
+                            return cache.addAll(ASSETS_TO_CACHE);
+                        })
+                    );
+                    self.skipWaiting();
+                });
+                
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(
+                        caches.keys().then((cacheNames) => {
+                            return Promise.all(
+                                cacheNames.map((cacheName) => {
+                                    if (cacheName !== CACHE_NAME) {
+                                        return caches.delete(cacheName);
+                                    }
+                                })
+                            );
+                        })
+                    );
+                    self.clients.claim();
+                });
+                
+                self.addEventListener('fetch', (event) => {
+                    if (event.request.method !== 'GET') return;
+                    
+                    event.respondWith(
+                        caches.match(event.request).then((response) => {
+                            if (response) return response;
+                            return fetch(event.request).then((response) => {
+                                if (!response || response.status !== 200 || response.type === 'error') {
+                                    return response;
+                                }
+                                const responseToCache = response.clone();
+                                caches.open(CACHE_NAME).then((cache) => {
+                                    cache.put(event.request, responseToCache);
+                                });
+                                return response;
+                            }).catch(() => {
+                                return caches.match(event.request);
+                            });
+                        })
+                    );
+                });
                 `;
-                const swBlob = new Blob([swCode], {type: 'application/javascript'});
-                const swURL = URL.createObjectURL(swBlob);
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register(swURL);
-                }
+            },
 
-                // Install Prompt
-                let deferredPrompt;
+            setupManifest() {
+                const manifest = {
+                    name: 'InvestMgr - Investment & Wealth Tracker',
+                    short_name: 'InvestMgr',
+                    description: 'Professional personal investment and wealth tracking PWA',
+                    start_url: '/',
+                    scope: '/',
+                    display: 'standalone',
+                    orientation: 'portrait-primary',
+                    theme_color: '#0f172a',
+                    background_color: '#0f172a',
+                    icons: [
+                        {
+                            src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect fill="%230f172a" width="192" height="192"/><text x="96" y="110" font-size="100" font-weight="bold" fill="%233b82f6" text-anchor="middle">💰</text></svg>',
+                            sizes: '192x192',
+                            type: 'image/svg+xml',
+                            purpose: 'any'
+                        }
+                    ],
+                    screenshots: [
+                        {
+                            src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 720"><rect fill="%230f172a" width="540" height="720"/><text x="270" y="360" font-size="100" font-weight="bold" fill="%233b82f6" text-anchor="middle">💰</text></svg>',
+                            sizes: '540x720',
+                            type: 'image/svg+xml',
+                            form_factor: 'narrow'
+                        }
+                    ],
+                    categories: ['finance'],
+                    shortcuts: [
+                        {
+                            name: 'Add Transaction',
+                            short_name: 'Add',
+                            description: 'Quickly add a transaction',
+                            url: '/?action=add-transaction',
+                            icons: [
+                                {
+                                    src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect fill="%233b82f6" width="96" height="96"/><text x="48" y="60" font-size="50" font-weight="bold" fill="white" text-anchor="middle">+</text></svg>',
+                                    sizes: '96x96',
+                                    type: 'image/svg+xml'
+                                }
+                            ]
+                        }
+                    ]
+                };
+                
+                const manifestStr = JSON.stringify(manifest);
+                const blob = new Blob([manifestStr], { type: 'application/manifest+json' });
+                const url = URL.createObjectURL(blob);
+                
+                let manifestLink = document.querySelector('link[rel="manifest"]');
+                if (!manifestLink) {
+                    manifestLink = document.createElement('link');
+                    manifestLink.rel = 'manifest';
+                    document.head.appendChild(manifestLink);
+                }
+                manifestLink.href = url;
+            },
+
+            checkInstallState() {
+                if (!window.matchMedia('(display-mode: standalone)').matches && 
+                    !navigator.standalone &&
+                    !window.navigator.standalone) {
+                    
+                    // Not installed, show blocker
+                    document.getElementById('install-blocker').classList.add('show');
+                    
+                    // Listen for install prompt
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.deferredPrompt = e;
+                    });
+                } else {
+                    // Installed
+                    this.isInstalled = true;
+                    document.getElementById('install-blocker').classList.remove('show');
+                }
+            },
+
+            handleInstallPrompt() {
+                if (this.deferredPrompt) {
+                    this.deferredPrompt.prompt();
+                    this.deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            this.isInstalled = true;
+                            document.getElementById('install-blocker').classList.remove('show');
+                        }
+                        this.deferredPrompt = null;
+                    });
+                }
+            },
+
+            setupEventListeners() {
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
-                    deferredPrompt = e;
-                    document.getElementById('install-btn').onclick = () => {
-                        deferredPrompt.prompt();
-                    };
+                    this.deferredPrompt = e;
                 });
+
+                window.addEventListener('appinstalled', () => {
+                    this.isInstalled = true;
+                    document.getElementById('install-blocker').classList.remove('show');
+                });
+
+                // Auto-update wealth on transaction
+                document.addEventListener('transactionAdded', () => {
+                    this.refreshDashboard();
+                });
+            },
+
+            async initializeDefaultData() {
+                const settings = await this.getSetting('initialized');
+                if (settings) return;
                 
-                // iOS check
-                if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-                    document.getElementById('install-btn').classList.add('hidden');
-                    document.getElementById('install-instruction').classList.remove('hidden');
+                // Initialize default settings
+                await this.setSetting('initialized', true);
+                await this.setSetting('annualIncome', 0);
+                await this.setSetting('annualExpenses', 0);
+                await this.setSetting('expectedReturn', 12);
+                await this.setSetting('inflationRate', 6);
+            },
+
+            // ==================== DATABASE OPERATIONS ====================
+            async addAsset(asset) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['assets'], 'readwrite');
+                    const store = transaction.objectStore('assets');
+                    const request = store.add({
+                        name: asset.name,
+                        type: asset.type,
+                        currentPrice: parseFloat(asset.currentPrice) || 0,
+                        notes: asset.notes || '',
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async getAssets() {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['assets'], 'readonly');
+                    const store = transaction.objectStore('assets');
+                    const request = store.getAll();
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async getAsset(id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['assets'], 'readonly');
+                    const store = transaction.objectStore('assets');
+                    const request = store.get(id);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async updateAsset(id, asset) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['assets'], 'readwrite');
+                    const store = transaction.objectStore('assets');
+                    const request = store.put({ ...asset, id });
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async addTransaction(txn) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['transactions'], 'readwrite');
+                    const store = transaction.objectStore('transactions');
+                    const request = store.add({
+                        assetId: txn.assetId,
+                        type: txn.type,
+                        quantity: this.parseDecimal(txn.quantity),
+                        price: this.parseDecimal(txn.price),
+                        date: txn.date,
+                        notes: txn.notes || '',
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async getTransactions() {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['transactions'], 'readonly');
+                    const store = transaction.objectStore('transactions');
+                    const request = store.getAll();
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result.sort((a, b) => new Date(b.date) - new Date(a.date)));
+                });
+            },
+
+            async deleteTransaction(id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['transactions'], 'readwrite');
+                    const store = transaction.objectStore('transactions');
+                    const request = store.delete(id);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve();
+                });
+            },
+
+            async addGoal(goal) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['goals'], 'readwrite');
+                    const store = transaction.objectStore('goals');
+                    const request = store.add({
+                        name: goal.name,
+                        target: this.parseDecimal(goal.target),
+                        date: goal.date,
+                        priority: goal.priority,
+                        notes: goal.notes || '',
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async getGoals() {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['goals'], 'readonly');
+                    const store = transaction.objectStore('goals');
+                    const request = store.getAll();
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async deleteGoal(id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['goals'], 'readwrite');
+                    const store = transaction.objectStore('goals');
+                    const request = store.delete(id);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve();
+                });
+            },
+
+            async addNote(note) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['notes'], 'readwrite');
+                    const store = transaction.objectStore('notes');
+                    const request = store.add({
+                        title: note.title,
+                        content: note.content,
+                        category: note.category,
+                        date: note.date,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async getNotes() {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['notes'], 'readonly');
+                    const store = transaction.objectStore('notes');
+                    const request = store.getAll();
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result.sort((a, b) => new Date(b.date) - new Date(a.date)));
+                });
+            },
+
+            async deleteNote(id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['notes'], 'readwrite');
+                    const store = transaction.objectStore('notes');
+                    const request = store.delete(id);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve();
+                });
+            },
+
+            async addRecurring(recurring) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['recurring'], 'readwrite');
+                    const store = transaction.objectStore('recurring');
+                    const request = store.add({
+                        assetId: recurring.assetId,
+                        amount: this.parseDecimal(recurring.amount),
+                        startDate: recurring.startDate,
+                        endDate: recurring.endDate || null,
+                        currentPrice: this.parseDecimal(recurring.currentPrice),
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async getRecurring() {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['recurring'], 'readonly');
+                    const store = transaction.objectStore('recurring');
+                    const request = store.getAll();
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            },
+
+            async setSetting(key, value) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['settings'], 'readwrite');
+                    const store = transaction.objectStore('settings');
+                    const request = store.put({ key, value });
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve();
+                });
+            },
+
+            async getSetting(key, defaultValue = null) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['settings'], 'readonly');
+                    const store = transaction.objectStore('settings');
+                    const request = store.get(key);
+                    
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result?.value ?? defaultValue);
+                });
+            },
+
+            // ==================== MATH & CALCULATIONS ====================
+            parseDecimal(value) {
+                // High precision decimal handling
+                return parseFloat(parseFloat(value).toFixed(10));
+            },
+
+            formatCurrency(amount) {
+                const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+                return new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'INR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                }).format(num);
+            },
+
+            formatNumber(num, decimals = 2) {
+                return parseFloat(num).toFixed(decimals);
+            },
+
+            formatPercent(num, decimals = 2) {
+                const val = parseFloat(num) * 100;
+                return `${val.toFixed(decimals)}%`;
+            },
+
+            async calculatePortfolioMetrics() {
+                const assets = await this.getAssets();
+                const transactions = await this.getTransactions();
+                const recurring = await this.getRecurring();
+                
+                const portfolio = {};
+                const assetMetrics = {};
+
+                // Process transactions
+                for (const txn of transactions) {
+                    if (!portfolio[txn.assetId]) {
+                        portfolio[txn.assetId] = {
+                            quantity: 0,
+                            invested: 0,
+                            gain: 0,
+                            transactions: []
+                        };
+                    }
+
+                    const qty = this.parseDecimal(txn.quantity);
+                    const price = this.parseDecimal(txn.price);
+                    const value = this.parseDecimal(qty * price);
+
+                    if (txn.type === 'buy') {
+                        portfolio[txn.assetId].quantity = this.parseDecimal(
+                            portfolio[txn.assetId].quantity + qty
+                        );
+                        portfolio[txn.assetId].invested = this.parseDecimal(
+                            portfolio[txn.assetId].invested + value
+                        );
+                    } else if (txn.type === 'sell') {
+                        const costPerUnit = portfolio[txn.assetId].invested / (portfolio[txn.assetId].quantity || 1);
+                        const saleValue = this.parseDecimal(qty * price);
+                        const costValue = this.parseDecimal(qty * costPerUnit);
+                        
+                        portfolio[txn.assetId].gain = this.parseDecimal(
+                            portfolio[txn.assetId].gain + (saleValue - costValue)
+                        );
+                        portfolio[txn.assetId].quantity = this.parseDecimal(
+                            portfolio[txn.assetId].quantity - qty
+                        );
+                        portfolio[txn.assetId].invested = this.parseDecimal(
+                            portfolio[txn.assetId].invested - costValue
+                        );
+                    }
+
+                    portfolio[txn.assetId].transactions.push(txn);
+                }
+
+                // Calculate current values and metrics
+                let totalNetWorth = 0;
+                let totalInvested = 0;
+                let totalCurrent = 0;
+                let totalGain = 0;
+
+                for (const [assetId, data] of Object.entries(portfolio)) {
+                    const asset = assets.find(a => a.id == assetId);
+                    if (!asset) continue;
+
+                    const currentPrice = parseFloat(asset.currentPrice) || 0;
+                    const currentValue = this.parseDecimal(data.quantity * currentPrice);
+                    const unrealizedGain = this.parseDecimal(currentValue - data.invested);
+
+                    assetMetrics[assetId] = {
+                        assetId,
+                        assetName: asset.name,
+                        assetType: asset.type,
+                        quantity: data.quantity,
+                        invested: data.invested,
+                        currentValue,
+                        unrealizedGain,
+                        realizedGain: data.gain,
+                        totalGain: this.parseDecimal(unrealizedGain + data.gain),
+                        currentPrice,
+                        costBasis: data.quantity > 0 ? this.parseDecimal(data.invested / data.quantity) : 0,
+                        returnPercent: data.invested > 0 ? this.parseDecimal((unrealizedGain / data.invested) * 100) : 0,
+                        weight: 0
+                    };
+
+                    totalInvested = this.parseDecimal(totalInvested + data.invested);
+                    totalCurrent = this.parseDecimal(totalCurrent + currentValue);
+                    totalGain = this.parseDecimal(totalGain + assetMetrics[assetId].totalGain);
+                    totalNetWorth = this.parseDecimal(totalNetWorth + currentValue);
+                }
+
+                // Calculate weights
+                for (const metric of Object.values(assetMetrics)) {
+                    metric.weight = totalCurrent > 0 ? this.parseDecimal((metric.currentValue / totalCurrent) * 100) : 0;
+                }
+
+                // Add cash
+                const cashAmount = await this.getSetting('cashBalance', 0);
+                if (cashAmount > 0) {
+                    totalNetWorth = this.parseDecimal(totalNetWorth + cashAmount);
+                }
+
+                return {
+                    portfolio,
+                    assetMetrics: Object.values(assetMetrics),
+                    summary: {
+                        totalNetWorth,
+                        totalInvested,
+                        totalCurrent,
+                        totalGain,
+                        absoluteReturn: totalInvested > 0 ? this.parseDecimal((totalGain / totalInvested) * 100) : 0,
+                        cashBalance: cashAmount
+                    }
+                };
+            },
+
+            async calculateMonthlyMetrics() {
+                const transactions = await this.getTransactions();
+                const today = new Date();
+                const currentMonth = today.getMonth();
+                const currentYear = today.getFullYear();
+
+                let monthlyInvested = 0;
+                let monthlyPassiveIncome = 0;
+
+                for (const txn of transactions) {
+                    const txnDate = new Date(txn.date);
+                    if (txnDate.getMonth() === currentMonth && txnDate.getFullYear() === currentYear) {
+                        if (txn.type === 'buy') {
+                            monthlyInvested = this.parseDecimal(monthlyInvested + (txn.quantity * txn.price));
+                        } else if (txn.type === 'income') {
+                            monthlyPassiveIncome = this.parseDecimal(monthlyPassiveIncome + (txn.quantity * txn.price));
+                        }
+                    }
+                }
+
+                return {
+                    monthlyInvested,
+                    monthlyPassiveIncome,
+                    totalMonthly: this.parseDecimal(monthlyInvested + monthlyPassiveIncome)
+                };
+            },
+
+            async calculateHealthScore() {
+                const metrics = await this.calculatePortfolioMetrics();
+                const assets = await this.getAssets();
+                let score = 70; // Base score
+
+                // Diversification bonus (up to 20 points)
+                const assetTypes = new Set(metrics.assetMetrics.map(m => m.assetType));
+                const diversificationBonus = Math.min(20, assetTypes.size * 5);
+                score += diversificationBonus;
+
+                // Concentration penalty (down to 30 points)
+                if (metrics.assetMetrics.length > 0) {
+                    const maxWeight = Math.max(...metrics.assetMetrics.map(m => m.weight));
+                    if (maxWeight > 50) {
+                        score -= (maxWeight - 50) * 0.5;
+                    }
+                }
+
+                // Return bonus
+                if (metrics.summary.absoluteReturn > 10) {
+                    score += Math.min(15, metrics.summary.absoluteReturn / 2);
+                }
+
+                // Ensure score is 0-100
+                score = Math.max(0, Math.min(100, Math.round(score)));
+                return score;
+            },
+
+            async calculateRiskIndicators() {
+                const metrics = await this.calculatePortfolioMetrics();
+                const assets = await this.getAssets();
+
+                // Concentration risk
+                const weights = metrics.assetMetrics.map(m => m.weight);
+                const maxConcentration = weights.length > 0 ? Math.max(...weights) : 0;
+                const concentrationRisk = maxConcentration > 40 ? 'high' : maxConcentration > 20 ? 'medium' : 'low';
+
+                // Type diversification
+                const typeCount = new Set(metrics.assetMetrics.map(m => m.assetType)).size;
+                const typeDiversification = typeCount >= 4 ? 'good' : typeCount >= 2 ? 'fair' : 'poor';
+
+                // Volatility estimate
+                const returns = metrics.assetMetrics.map(m => m.returnPercent);
+                const avgReturn = returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : 0;
+                const variance = returns.length > 0 ? returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length : 0;
+                const volatility = Math.sqrt(variance);
+                const volatilityLevel = volatility > 30 ? 'high' : volatility > 15 ? 'medium' : 'low';
+
+                return {
+                    concentrationRisk,
+                    typeDiversification,
+                    volatility: volatility.toFixed(2),
+                    volatilityLevel
+                };
+            },
+
+            async calculateFIProgress() {
+                const annualIncome = await this.getSetting('annualIncome', 0);
+                const annualExpenses = await this.getSetting('annualExpenses', 0);
+                const metrics = await this.calculatePortfolioMetrics();
+                const expectedReturn = await this.getSetting('expectedReturn', 12);
+                const inflationRate = await this.getSetting('inflationRate', 6);
+
+                const fiTarget = this.parseDecimal(annualExpenses * 25); // 4% rule
+                const currentNetWorth = metrics.summary.totalNetWorth;
+                const fiProgress = fiTarget > 0 ? this.parseDecimal((currentNetWorth / fiTarget) * 100) : 0;
+                
+                // Years to FI (simplified)
+                const annualSavings = this.parseDecimal(annualIncome - annualExpenses);
+                let yearsToFI = 100;
+                if (annualSavings > 0) {
+                    const realReturn = ((1 + expectedReturn / 100) / (1 + inflationRate / 100)) - 1;
+                    // Simplified calculation
+                    yearsToFI = Math.log(fiTarget / currentNetWorth) / Math.log(1 + realReturn);
+                    yearsToFI = Math.max(0, yearsToFI);
+                }
+
+                return {
+                    target: fiTarget,
+                    current: currentNetWorth,
+                    progress: fiProgress,
+                    yearsToFI: yearsToFI < 100 ? yearsToFI.toFixed(1) : '100+',
+                    canRetire: fiProgress >= 100
+                };
+            },
+
+            // ==================== UI OPERATIONS ====================
+            switchView(viewName) {
+                // Hide all views
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(v => v.classList.remove('active'));
+
+                // Show selected view
+                const viewElement = document.getElementById(viewName);
+                if (viewElement) {
+                    viewElement.classList.add('active');
+                }
+
+                // Update nav
+                const navBtn = document.querySelector(`[data-view="${viewName}"]`);
+                if (navBtn) {
+                    navBtn.classList.add('active');
+                }
+
+                // Refresh data for view
+                this.refreshViewData(viewName);
+            },
+
+            async refreshViewData(viewName) {
+                switch(viewName) {
+                    case 'portfolio':
+                        await this.renderPortfolioAssets();
+                        break;
+                    case 'transactions':
+                        await this.renderTransactions();
+                        break;
+                    case 'goals':
+                        await this.renderGoals();
+                        break;
+                    case 'intelligence':
+                        await this.renderIntelligence();
+                        break;
+                    case 'analysis':
+                        await this.renderAnalysis();
+                        break;
+                    case 'notes':
+                        await this.renderNotes();
+                        break;
                 }
             },
-            loadSettings() {
-                const s = localStorage.getItem('aurelius_settings');
-                if (s) {
-                    const cfg = JSON.parse(s);
-                    this.currency = cfg.currency || '₹';
-                    document.getElementById('setting-currency').value = this.currency;
-                }
-            }
-        };
 
-        /**
-         * STORAGE LAYER (IndexedDB)
-         */
-        const Storage = {
-            db: null,
-            initDB() {
-                return new Promise((resolve) => {
-                    const request = indexedDB.open(App.id, 1);
-                    request.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        db.createObjectStore('assets', { keyPath: 'id', autoIncrement: true });
-                        db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
-                        db.createObjectStore('history', { keyPath: 'date' });
+            async refreshDashboard() {
+                const metrics = await this.calculatePortfolioMetrics();
+                const monthly = await this.calculateMonthlyMetrics();
+                
+                // Update dashboard cards
+                document.getElementById('nw-total').textContent = this.formatCurrency(metrics.summary.totalNetWorth);
+                document.getElementById('nw-invested').textContent = this.formatCurrency(metrics.summary.totalInvested);
+                document.getElementById('nw-current').textContent = this.formatCurrency(metrics.summary.totalCurrent);
+                
+                const changePercent = metrics.summary.totalInvested > 0 
+                    ? ((metrics.summary.totalGain / metrics.summary.totalInvested) * 100).toFixed(2)
+                    : 0;
+                
+                const gainElement = document.getElementById('nw-current-change');
+                gainElement.textContent = `${this.formatCurrency(metrics.summary.totalGain)} gain`;
+                gainElement.className = 'card-subtext ' + (metrics.summary.totalGain >= 0 ? 'card-positive' : 'card-negative');
+                
+                const changeElement = document.getElementById('nw-change');
+                changeElement.textContent = `${metrics.summary.totalGain >= 0 ? '+' : ''}${this.formatCurrency(metrics.summary.totalGain)} (${changePercent}%)`;
+                changeElement.className = 'card-subtext ' + (changePercent >= 0 ? 'card-positive' : 'card-negative');
+
+                // Monthly metrics
+                document.getElementById('monthly-invested').textContent = this.formatCurrency(monthly.monthlyInvested);
+                document.getElementById('monthly-passive').textContent = this.formatCurrency(monthly.monthlyPassiveIncome);
+                
+                const monthlyReturnPercent = metrics.summary.totalCurrent > 0 
+                    ? (((metrics.summary.totalCurrent - metrics.summary.totalInvested) / metrics.summary.totalInvested) * 100).toFixed(2)
+                    : 0;
+                document.getElementById('monthly-return').textContent = `${monthlyReturnPercent}%`;
+
+                // Update allocation chart
+                await this.renderAllocationChart(metrics.assetMetrics);
+                
+                // Update wealth timeline
+                await this.renderWealthChart(metrics);
+                
+                // Update asset list
+                await this.updateAssetList();
+            },
+
+            async renderPortfolioAssets() {
+                const metrics = await this.calculatePortfolioMetrics();
+                let filtered = metrics.assetMetrics;
+
+                if (this.currentAssetTypeFilter !== 'all') {
+                    filtered = filtered.filter(a => a.assetType === this.currentAssetTypeFilter);
+                }
+
+                const container = document.getElementById('portfolioAssets');
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><h3>No Assets</h3><p>Add your first asset to get started</p></div>';
+                    return;
+                }
+
+                let html = '<table class="table"><thead><tr><th>Asset</th><th>Qty</th><th>Cost Basis</th><th>Current Value</th><th>Gain</th><th>Return</th><th>Weight</th></tr></thead><tbody>';
+                
+                for (const metric of filtered) {
+                    const returnClass = metric.returnPercent >= 0 ? 'card-positive' : 'card-negative';
+                    html += `
+                        <tr>
+                            <td>${metric.assetName}</td>
+                            <td>${this.formatNumber(metric.quantity)}</td>
+                            <td>${this.formatCurrency(metric.costBasis)}</td>
+                            <td>${this.formatCurrency(metric.currentValue)}</td>
+                            <td class="${returnClass}">${this.formatCurrency(metric.totalGain)}</td>
+                            <td class="${returnClass}">${this.formatNumber(metric.returnPercent)}%</td>
+                            <td>${this.formatNumber(metric.weight)}%</td>
+                        </tr>
+                    `;
+                }
+                
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            },
+
+            async renderTransactions() {
+                const transactions = await this.getTransactions();
+                const assets = await this.getAssets();
+                let filtered = transactions;
+
+                // Apply type filter
+                if (this.currentTransactionTypeFilter !== 'all') {
+                    filtered = filtered.filter(t => t.type === this.currentTransactionTypeFilter);
+                }
+
+                // Apply search filter
+                if (this.currentTransactionSearchTerm) {
+                    const searchLower = this.currentTransactionSearchTerm.toLowerCase();
+                    filtered = filtered.filter(t => {
+                        const asset = assets.find(a => a.id === t.assetId);
+                        return asset && asset.name.toLowerCase().includes(searchLower);
+                    });
+                }
+
+                const container = document.getElementById('transactionsList');
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><h3>No Transactions</h3></div>';
+                    return;
+                }
+
+                let html = '';
+                for (const txn of filtered) {
+                    const asset = assets.find(a => a.id === txn.assetId);
+                    if (!asset) continue;
+
+                    const value = this.parseDecimal(txn.quantity * txn.price);
+                    const typeIcon = txn.type === 'buy' ? '📈' : txn.type === 'sell' ? '📉' : '💰';
+                    const typeLabel = txn.type.charAt(0).toUpperCase() + txn.type.slice(1);
+
+                    html += `
+                        <div class="transaction-row ${txn.type}">
+                            <div class="transaction-info">
+                                <div class="transaction-asset">${typeIcon} ${asset.name}</div>
+                                <div class="transaction-type">${typeLabel} • ${new Date(txn.date).toLocaleDateString()} • ${this.formatNumber(txn.quantity)} units @ ${this.formatCurrency(txn.price)}</div>
+                            </div>
+                            <div class="transaction-value">${this.formatCurrency(value)}</div>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+            },
+
+            filterTransactions() {
+                this.currentTransactionSearchTerm = document.getElementById('txnSearch').value;
+                this.renderTransactions();
+            },
+
+            setTransactionTypeFilter(type) {
+                this.currentTransactionTypeFilter = type;
+                document.querySelectorAll('#transactions .filter-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                this.renderTransactions();
+            },
+
+            setAssetTypeFilter(type) {
+                this.currentAssetTypeFilter = type;
+                document.querySelectorAll('#portfolio .filter-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                this.renderPortfolioAssets();
+            },
+
+            async renderGoals() {
+                const goals = await this.getGoals();
+                const metrics = await this.calculatePortfolioMetrics();
+                const container = document.getElementById('goalsList');
+
+                if (goals.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><h3>No Goals</h3></div>';
+                    return;
+                }
+
+                let html = '';
+                for (const goal of goals.sort((a, b) => new Date(a.date) - new Date(b.date))) {
+                    const targetDate = new Date(goal.date);
+                    const today = new Date();
+                    const daysLeft = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+                    const monthsLeft = Math.ceil(daysLeft / 30);
+                    const progress = Math.min(100, (metrics.summary.totalNetWorth / goal.target) * 100);
+
+                    const priorityColor = goal.priority === 'high' ? '#ef4444' : goal.priority === 'medium' ? '#f59e0b' : '#10b981';
+
+                    html += `
+                        <div class="card goal-progress">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--text-primary);">${goal.name}</div>
+                                    <div class="text-muted">${this.formatCurrency(goal.target)} • ${monthsLeft} months left</div>
+                                </div>
+                                <button class="btn-secondary" onclick="app.deleteGoal(${goal.id})" style="padding: 4px 8px; font-size: 12px;">Delete</button>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%; background: ${priorityColor};"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+                                <span>${this.formatCurrency(metrics.summary.totalNetWorth)}</span>
+                                <span>${progress.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+            },
+
+            async deleteGoal(id) {
+                await this.deleteGoal(id);
+                await this.renderGoals();
+                this.showToast('Goal deleted', 'success');
+            },
+
+            async renderIntelligence() {
+                const healthScore = await this.calculateHealthScore();
+                const risks = await this.calculateRiskIndicators();
+                const fiProgress = await this.calculateFIProgress();
+
+                // Health score
+                document.getElementById('healthScore').textContent = healthScore;
+                document.getElementById('healthScore').style.color = 
+                    healthScore >= 80 ? 'var(--success)' : 
+                    healthScore >= 60 ? 'var(--accent)' : 'var(--danger)';
+
+                let healthDetails = `
+                    <div style="margin-top: 16px;">
+                        <div class="stat-mini">
+                            <div class="stat-mini-label">Overall Assessment</div>
+                            <div class="stat-mini-value" style="color: ${healthScore >= 80 ? 'var(--success)' : healthScore >= 60 ? 'var(--accent)' : 'var(--danger)'}">
+                                ${healthScore >= 80 ? '✅ Excellent' : healthScore >= 60 ? '⚠️ Good' : '❌ Needs Work'}
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);">
+                            Your investment portfolio shows ${risks.typeDiversification} diversification across ${risks.concentrationRisk} concentration risk. Volatility level: ${risks.volatilityLevel}.
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('healthDetails').innerHTML = healthDetails;
+
+                // Insights
+                let insights = '<div class="scrollable">';
+                
+                if (risks.concentrationRisk === 'high') {
+                    insights += '<div class="card" style="margin-bottom: 12px; border-left: 3px solid var(--warning);"><strong>⚠️ High Concentration</strong><p class="text-muted" style="margin-top: 4px;">Consider diversifying to reduce risk</p></div>';
+                }
+                
+                if (fiProgress.yearsToFI !== '100+') {
+                    insights += `<div class="card" style="margin-bottom: 12px; border-left: 3px solid var(--success);"><strong>📈 On Track to FI</strong><p class="text-muted" style="margin-top: 4px;">At current pace, FI in ${fiProgress.yearsToFI} years</p></div>`;
+                }
+                
+                if (risks.typeDiversification === 'poor') {
+                    insights += '<div class="card" style="margin-bottom: 12px; border-left: 3px solid var(--danger);"><strong>🔴 Low Diversification</strong><p class="text-muted" style="margin-top: 4px;">Add more asset types to reduce single-point-of-failure risk</p></div>';
+                }
+                
+                insights += '</div>';
+                document.getElementById('intelligenceInsights').innerHTML = insights;
+
+                // Rebalancing suggestions
+                const metrics = await this.calculatePortfolioMetrics();
+                let suggestions = '<div class="scrollable">';
+
+                if (metrics.assetMetrics.length > 0) {
+                    const avgWeight = 100 / metrics.assetMetrics.length;
+                    for (const asset of metrics.assetMetrics) {
+                        const drift = Math.abs(asset.weight - avgWeight);
+                        if (drift > 10) {
+                            suggestions += `
+                                <div class="card" style="margin-bottom: 12px; padding: 12px;">
+                                    <strong>${asset.assetName}</strong>
+                                    <p class="text-muted" style="margin-top: 4px;">Currently ${asset.weight.toFixed(1)}% vs target ${avgWeight.toFixed(1)}%</p>
+                                    ${asset.weight > avgWeight 
+                                        ? `<p class="text-muted" style="margin-top: 4px;">💡 Consider rebalancing by selling ${(asset.weight - avgWeight).toFixed(1)}%</p>`
+                                        : `<p class="text-muted" style="margin-top: 4px;">💡 Consider rebalancing by buying ${(avgWeight - asset.weight).toFixed(1)}%</p>`
+                                    }
+                                </div>
+                            `;
+                        }
+                    }
+                }
+
+                suggestions += '</div>';
+                document.getElementById('rebalancingSuggestions').innerHTML = suggestions;
+            },
+
+            async renderAnalysis() {
+                const metrics = await this.calculatePortfolioMetrics();
+                const fiProgress = await this.calculateFIProgress();
+
+                // Performance stats
+                const absoluteReturn = metrics.summary.totalInvested > 0 
+                    ? (metrics.summary.totalGain / metrics.summary.totalInvested) * 100
+                    : 0;
+
+                document.getElementById('stat-absoluteReturn').textContent = `${absoluteReturn >= 0 ? '+' : ''}${absoluteReturn.toFixed(2)}%`;
+                document.getElementById('stat-absoluteReturn').className = 'stat-mini-value ' + (absoluteReturn >= 0 ? 'card-positive' : 'card-negative');
+
+                // CAGR calculation (simplified)
+                const transactions = await this.getTransactions();
+                const firstTxnDate = transactions.length > 0 ? new Date(transactions[transactions.length - 1].date) : new Date();
+                const today = new Date();
+                const yearsElapsed = (today - firstTxnDate) / (365.25 * 24 * 60 * 60 * 1000);
+                
+                let cagr = 0;
+                if (yearsElapsed > 0 && metrics.summary.totalInvested > 0) {
+                    cagr = (Math.pow(metrics.summary.totalCurrent / metrics.summary.totalInvested, 1 / yearsElapsed) - 1) * 100;
+                }
+
+                document.getElementById('stat-cagr').textContent = `${cagr.toFixed(2)}%`;
+                document.getElementById('stat-cagr').className = 'stat-mini-value ' + (cagr >= 0 ? 'card-positive' : 'card-negative');
+
+                // Max drawdown (simplified)
+                let maxDrawdown = 0;
+                let peakValue = 0;
+                for (const metric of metrics.assetMetrics) {
+                    if (metric.currentValue > peakValue) {
+                        peakValue = metric.currentValue;
+                    }
+                    const drawdown = (peakValue - metric.currentValue) / peakValue * 100;
+                    if (drawdown > maxDrawdown) {
+                        maxDrawdown = drawdown;
+                    }
+                }
+
+                document.getElementById('stat-drawdown').textContent = `-${maxDrawdown.toFixed(2)}%`;
+
+                // Win rate
+                const gainers = metrics.assetMetrics.filter(a => a.returnPercent > 0).length;
+                const winRate = metrics.assetMetrics.length > 0 ? (gainers / metrics.assetMetrics.length) * 100 : 0;
+                document.getElementById('stat-winrate').textContent = `${winRate.toFixed(1)}%`;
+
+                // Diversification
+                const types = new Set(metrics.assetMetrics.map(a => a.assetType));
+                let diversDiv = `<div class="stat-mini">
+                    <div class="stat-mini-label">Asset Types</div>
+                    <div class="stat-mini-value">${types.size}</div>
+                </div>`;
+
+                for (const type of types) {
+                    const assets = metrics.assetMetrics.filter(a => a.assetType === type);
+                    const typeWeight = assets.reduce((sum, a) => sum + a.weight, 0);
+                    diversDiv += `
+                        <div style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>${type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                                <span>${typeWeight.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('diversificationAnalysis').innerHTML = diversDiv;
+
+                // FI Progress
+                let fiDiv = `
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">FI Target</div>
+                        <div class="stat-mini-value">${this.formatCurrency(fiProgress.target)}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Current Net Worth</div>
+                        <div class="stat-mini-value">${this.formatCurrency(fiProgress.current)}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">FI Progress</div>
+                        <div class="stat-mini-value" style="color: ${fiProgress.progress >= 100 ? 'var(--success)' : 'var(--accent)'};">${fiProgress.progress.toFixed(1)}%</div>
+                    </div>
+                    ${fiProgress.yearsToFI !== '100+' ? `
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Years to FI</div>
+                        <div class="stat-mini-value">${fiProgress.yearsToFI}</div>
+                    </div>
+                    ` : ''}
+                `;
+
+                document.getElementById('fiProgress').innerHTML = fiDiv;
+
+                // Passive income forecast
+                const monthly = await this.calculateMonthlyMetrics();
+                const annualPassive = this.parseDecimal(monthly.monthlyPassiveIncome * 12);
+                const annualExpenses = await this.getSetting('annualExpenses', 0);
+                const passiveCoverage = annualExpenses > 0 ? (annualPassive / annualExpenses) * 100 : 0;
+
+                let passiveDiv = `
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Annual Passive Income</div>
+                        <div class="stat-mini-value">${this.formatCurrency(annualPassive)}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Expense Coverage</div>
+                        <div class="stat-mini-value" style="color: ${passiveCoverage >= 100 ? 'var(--success)' : 'var(--accent)'};">${passiveCoverage.toFixed(1)}%</div>
+                    </div>
+                `;
+
+                document.getElementById('passiveIncomeForecast').innerHTML = passiveDiv;
+            },
+
+            async renderNotes() {
+                const notes = await this.getNotes();
+                const container = document.getElementById('notesList');
+
+                if (notes.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><h3>No Notes</h3></div>';
+                    return;
+                }
+
+                let html = '';
+                for (const note of notes) {
+                    const categoryEmoji = {
+                        'thought': '💭',
+                        'decision': '🎯',
+                        'analysis': '📊',
+                        'reminder': '⏰',
+                        'review': '📝'
+                    }[note.category] || '📝';
+
+                    html += `
+                        <div class="card" style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <div>
+                                    <div style="font-weight: 600;">${categoryEmoji} ${note.title}</div>
+                                    <div class="text-muted">${new Date(note.date).toLocaleDateString()}</div>
+                                </div>
+                                <button class="btn-secondary" onclick="app.deleteNote(${note.id})" style="padding: 4px 8px; font-size: 12px;">Delete</button>
+                            </div>
+                            <div style="margin-top: 8px; color: var(--text-secondary); line-height: 1.5;">${note.content.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+            },
+
+            async deleteNote(id) {
+                await this.deleteNote(id);
+                await this.renderNotes();
+                this.showToast('Note deleted', 'success');
+            },
+
+            async renderAllocationChart(assetMetrics) {
+                const canvas = document.getElementById('allocationChart');
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = 60;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const colors = [
+                    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+                    '#ec4899', '#06b6d4', '#6366f1', '#14b8a6', '#f97316'
+                ];
+
+                let currentAngle = -Math.PI / 2;
+                const legend = [];
+
+                for (let i = 0; i < assetMetrics.length; i++) {
+                    const metric = assetMetrics[i];
+                    const weight = metric.weight / 100;
+                    const sliceAngle = weight * 2 * Math.PI;
+                    const color = colors[i % colors.length];
+
+                    // Draw slice
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                    ctx.lineTo(centerX, centerY);
+                    ctx.fill();
+
+                    // Draw border
+                    ctx.strokeStyle = 'var(--secondary)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    legend.push({
+                        name: metric.assetName,
+                        weight: metric.weight,
+                        color: color
+                    });
+
+                    currentAngle += sliceAngle;
+                }
+
+                // Render legend
+                const legendHtml = legend.map(item => `
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: ${item.color};"></div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-primary);">${item.name}</div>
+                            <div class="text-muted">${item.weight.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('allocationLegend').innerHTML = legendHtml;
+            },
+
+            async renderWealthChart(metrics) {
+                const canvas = document.getElementById('wealthChart');
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                const transactions = await this.getTransactions();
+                
+                // Group transactions by month
+                const monthlyData = {};
+                let cumulativeValue = 0;
+
+                for (const txn of transactions.sort((a, b) => new Date(a.date) - new Date(b.date))) {
+                    const date = new Date(txn.date);
+                    const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    
+                    const value = this.parseDecimal(txn.quantity * txn.price);
+                    if (txn.type === 'buy') {
+                        cumulativeValue = this.parseDecimal(cumulativeValue + value);
+                    }
+
+                    if (!monthlyData[yearMonth]) {
+                        monthlyData[yearMonth] = cumulativeValue;
+                    }
+                }
+
+                const months = Object.keys(monthlyData).slice(-12); // Last 12 months
+                const values = months.map(m => monthlyData[m]);
+
+                if (months.length === 0) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = 'var(--text-secondary)';
+                    ctx.fillText('No data yet', 50, 50);
+                    return;
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const padding = 40;
+                const chartWidth = canvas.width - 2 * padding;
+                const chartHeight = canvas.height - 2 * padding;
+
+                const maxValue = Math.max(...values, 1);
+                const barWidth = chartWidth / months.length;
+
+                // Draw axes
+                ctx.strokeStyle = 'var(--border)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, canvas.height - padding);
+                ctx.lineTo(canvas.width - padding, canvas.height - padding);
+                ctx.stroke();
+
+                // Draw bars
+                ctx.fillStyle = 'var(--accent)';
+                for (let i = 0; i < values.length; i++) {
+                    const barHeight = (values[i] / maxValue) * chartHeight;
+                    const x = padding + i * barWidth + barWidth * 0.2;
+                    const y = canvas.height - padding - barHeight;
+                    ctx.fillRect(x, y, barWidth * 0.6, barHeight);
+                }
+
+                // Draw labels
+                ctx.fillStyle = 'var(--text-secondary)';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                for (let i = 0; i < months.length; i++) {
+                    const x = padding + i * barWidth + barWidth / 2;
+                    const label = months[i].slice(5); // MM format
+                    ctx.fillText(label, x, canvas.height - padding + 20);
+                }
+            },
+
+            async updateAssetList() {
+                const assets = await this.getAssets();
+                const datalists = [
+                    document.getElementById('assetList'),
+                    document.getElementById('assetList2')
+                ];
+
+                let html = '';
+                for (const asset of assets) {
+                    html += `<option value="${asset.name}" data-id="${asset.id}">`;
+                }
+
+                datalists.forEach(dl => {
+                    if (dl) dl.innerHTML = html;
+                });
+            },
+
+            // ==================== MODAL OPERATIONS ====================
+            showTransactionModal(type = '') {
+                this.switchView('transactions');
+                const modal = document.getElementById('transactionModal');
+                document.getElementById('txnType').value = type;
+                this.updateTransactionForm();
+                modal.classList.add('show');
+            },
+
+            showAssetModal() {
+                const modal = document.getElementById('assetModal');
+                document.getElementById('assetName').value = '';
+                document.getElementById('assetType').value = 'equity';
+                document.getElementById('assetPrice').value = '';
+                document.getElementById('assetNotes').value = '';
+                modal.classList.add('show');
+            },
+
+            showGoalModal() {
+                const modal = document.getElementById('goalModal');
+                document.getElementById('goalName').value = '';
+                document.getElementById('goalTarget').value = '';
+                document.getElementById('goalDate').valueAsDate = new Date();
+                document.getElementById('goalPriority').value = 'medium';
+                document.getElementById('goalNotes').value = '';
+                modal.classList.add('show');
+            },
+
+            showRecurringModal() {
+                const modal = document.getElementById('recurringModal');
+                document.getElementById('recurringAsset').value = '';
+                document.getElementById('recurringAmount').value = '';
+                document.getElementById('recurringStart').valueAsDate = new Date();
+                document.getElementById('recurringEnd').value = '';
+                document.getElementById('recurringPrice').value = '';
+                modal.classList.add('show');
+            },
+
+            showSettingsModal() {
+                const modal = document.getElementById('settingsModal');
+                this.getSetting('annualIncome', 0).then(v => {
+                    document.getElementById('settingAnnualIncome').value = v;
+                });
+                this.getSetting('annualExpenses', 0).then(v => {
+                    document.getElementById('settingAnnualExpenses').value = v;
+                });
+                this.getSetting('expectedReturn', 12).then(v => {
+                    document.getElementById('settingExpectedReturn').value = v;
+                });
+                this.getSetting('inflationRate', 6).then(v => {
+                    document.getElementById('settingInflationRate').value = v;
+                });
+                modal.classList.add('show');
+            },
+
+            showBackupModal() {
+                const modal = document.getElementById('backupModal');
+                modal.classList.add('show');
+            },
+
+            showNoteModal() {
+                const modal = document.getElementById('noteModal');
+                document.getElementById('noteTitle').value = '';
+                document.getElementById('noteDate').valueAsDate = new Date();
+                document.getElementById('noteCategory').value = 'thought';
+                document.getElementById('noteContent').value = '';
+                modal.classList.add('show');
+            },
+
+            closeModal(modalId) {
+                document.getElementById(modalId).classList.remove('show');
+            },
+
+            updateTransactionForm() {
+                const type = document.getElementById('txnType').value;
+                document.getElementById('txnQuantity').required = type !== '';
+                document.getElementById('txnPrice').required = type !== '';
+            },
+
+            // ==================== FORM SUBMISSIONS ====================
+            async saveTransaction(event) {
+                event.preventDefault();
+
+                const assetName = document.getElementById('txnAsset').value;
+                const type = document.getElementById('txnType').value;
+                const quantity = parseFloat(document.getElementById('txnQuantity').value);
+                const price = parseFloat(document.getElementById('txnPrice').value);
+                const date = document.getElementById('txnDate').value;
+                const notes = document.getElementById('txnNotes').value;
+
+                if (!assetName || !type || !quantity || !price || !date) {
+                    this.showToast('Please fill all required fields', 'error');
+                    return;
+                }
+
+                try {
+                    // Find or create asset
+                    let assets = await this.getAssets();
+                    let asset = assets.find(a => a.name === assetName);
+
+                    if (!asset) {
+                        const assetId = await this.addAsset({
+                            name: assetName,
+                            type: 'equity',
+                            currentPrice: price,
+                            notes: ''
+                        });
+                        asset = { id: assetId };
+                    } else {
+                        // Update current price
+                        await this.updateAsset(asset.id, {
+                            ...asset,
+                            currentPrice: price
+                        });
+                    }
+
+                    // Add transaction
+                    await this.addTransaction({
+                        assetId: asset.id,
+                        type,
+                        quantity,
+                        price,
+                        date,
+                        notes
+                    });
+
+                    this.closeModal('transactionModal');
+                    this.showToast('Transaction added', 'success');
+                    await this.refreshDashboard();
+                    await this.updateAssetList();
+                } catch (error) {
+                    console.error('Error saving transaction:', error);
+                    this.showToast('Error saving transaction', 'error');
+                }
+            },
+
+            async saveAsset(event) {
+                event.preventDefault();
+
+                const name = document.getElementById('assetName').value;
+                const type = document.getElementById('assetType').value;
+                const price = parseFloat(document.getElementById('assetPrice').value);
+                const notes = document.getElementById('assetNotes').value;
+
+                if (!name || !price) {
+                    this.showToast('Please fill all required fields', 'error');
+                    return;
+                }
+
+                try {
+                    await this.addAsset({
+                        name,
+                        type,
+                        currentPrice: price,
+                        notes
+                    });
+
+                    this.closeModal('assetModal');
+                    this.showToast('Asset added', 'success');
+                    await this.updateAssetList();
+                } catch (error) {
+                    console.error('Error saving asset:', error);
+                    this.showToast('Error saving asset', 'error');
+                }
+            },
+
+            async saveGoal(event) {
+                event.preventDefault();
+
+                const name = document.getElementById('goalName').value;
+                const target = parseFloat(document.getElementById('goalTarget').value);
+                const date = document.getElementById('goalDate').value;
+                const priority = document.getElementById('goalPriority').value;
+                const notes = document.getElementById('goalNotes').value;
+
+                if (!name || !target || !date) {
+                    this.showToast('Please fill all required fields', 'error');
+                    return;
+                }
+
+                try {
+                    await this.addGoal({
+                        name,
+                        target,
+                        date,
+                        priority,
+                        notes
+                    });
+
+                    this.closeModal('goalModal');
+                    this.showToast('Goal added', 'success');
+                    await this.renderGoals();
+                } catch (error) {
+                    console.error('Error saving goal:', error);
+                    this.showToast('Error saving goal', 'error');
+                }
+            },
+
+            async saveRecurring(event) {
+                event.preventDefault();
+
+                const assetName = document.getElementById('recurringAsset').value;
+                const amount = parseFloat(document.getElementById('recurringAmount').value);
+                const startDate = document.getElementById('recurringStart').value;
+                const endDate = document.getElementById('recurringEnd').value;
+                const currentPrice = parseFloat(document.getElementById('recurringPrice').value);
+
+                if (!assetName || !amount || !startDate || !currentPrice) {
+                    this.showToast('Please fill all required fields', 'error');
+                    return;
+                }
+
+                try {
+                    let assets = await this.getAssets();
+                    let asset = assets.find(a => a.name === assetName);
+
+                    if (!asset) {
+                        const assetId = await this.addAsset({
+                            name: assetName,
+                            type: 'mf',
+                            currentPrice,
+                            notes: 'SIP Investment'
+                        });
+                        asset = { id: assetId };
+                    }
+
+                    await this.addRecurring({
+                        assetId: asset.id,
+                        amount,
+                        startDate,
+                        endDate,
+                        currentPrice
+                    });
+
+                    this.closeModal('recurringModal');
+                    this.showToast('SIP added', 'success');
+                    await this.updateAssetList();
+                } catch (error) {
+                    console.error('Error saving SIP:', error);
+                    this.showToast('Error saving SIP', 'error');
+                }
+            },
+
+            async saveNote(event) {
+                event.preventDefault();
+
+                const title = document.getElementById('noteTitle').value;
+                const content = document.getElementById('noteContent').value;
+                const category = document.getElementById('noteCategory').value;
+                const date = document.getElementById('noteDate').value;
+
+                if (!title || !content) {
+                    this.showToast('Please fill all required fields', 'error');
+                    return;
+                }
+
+                try {
+                    await this.addNote({
+                        title,
+                        content,
+                        category,
+                        date
+                    });
+
+                    this.closeModal('noteModal');
+                    this.showToast('Note added', 'success');
+                    await this.renderNotes();
+                } catch (error) {
+                    console.error('Error saving note:', error);
+                    this.showToast('Error saving note', 'error');
+                }
+            },
+
+            async saveSettings() {
+                const annualIncome = parseFloat(document.getElementById('settingAnnualIncome').value) || 0;
+                const annualExpenses = parseFloat(document.getElementById('settingAnnualExpenses').value) || 0;
+                const expectedReturn = parseFloat(document.getElementById('settingExpectedReturn').value) || 12;
+                const inflationRate = parseFloat(document.getElementById('settingInflationRate').value) || 6;
+
+                try {
+                    await this.setSetting('annualIncome', annualIncome);
+                    await this.setSetting('annualExpenses', annualExpenses);
+                    await this.setSetting('expectedReturn', expectedReturn);
+                    await this.setSetting('inflationRate', inflationRate);
+
+                    this.closeModal('settingsModal');
+                    this.showToast('Settings saved', 'success');
+                    await this.refreshDashboard();
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                    this.showToast('Error saving settings', 'error');
+                }
+            },
+
+            async undoLastTransaction() {
+                const transactions = await this.getTransactions();
+                if (transactions.length === 0) {
+                    this.showToast('No transactions to undo', 'error');
+                    return;
+                }
+
+                const lastTxn = transactions[0];
+                try {
+                    await this.deleteTransaction(lastTxn.id);
+                    this.showToast('Transaction undone', 'success');
+                    await this.refreshDashboard();
+                    await this.renderTransactions();
+                } catch (error) {
+                    console.error('Error undoing transaction:', error);
+                    this.showToast('Error undoing transaction', 'error');
+                }
+            },
+
+            // ==================== BACKUP & RESTORE ====================
+            async exportData() {
+                try {
+                    const assets = await this.getAssets();
+                    const transactions = await this.getTransactions();
+                    const goals = await this.getGoals();
+                    const notes = await this.getNotes();
+                    const recurring = await this.getRecurring();
+
+                    const backup = {
+                        version: 1,
+                        exportDate: new Date().toISOString(),
+                        assets,
+                        transactions,
+                        goals,
+                        notes,
+                        recurring
                     };
-                    request.onsuccess = (e) => {
-                        this.db = e.target.result;
+
+                    const dataStr = JSON.stringify(backup, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `investmgr-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    this.showToast('Data exported', 'success');
+                } catch (error) {
+                    console.error('Error exporting data:', error);
+                    this.showToast('Error exporting data', 'error');
+                }
+            },
+
+            async importData() {
+                const file = document.getElementById('importFile').files[0];
+                if (!file) {
+                    this.showToast('Please select a file', 'error');
+                    return;
+                }
+
+                try {
+                    const text = await file.text();
+                    const backup = JSON.parse(text);
+
+                    // Validate backup structure
+                    if (!backup.version || !Array.isArray(backup.assets)) {
+                        throw new Error('Invalid backup file');
+                    }
+
+                    // Ask for confirmation
+                    if (!confirm('This will overwrite all data. Continue?')) {
+                        return;
+                    }
+
+                    // Clear existing data
+                    await this.clearAllData();
+
+                    // Import assets
+                    for (const asset of backup.assets) {
+                        await this.addAsset(asset);
+                    }
+
+                    // Import transactions
+                    for (const txn of backup.transactions) {
+                        await this.addTransaction(txn);
+                    }
+
+                    // Import goals
+                    for (const goal of backup.goals) {
+                        await this.addGoal(goal);
+                    }
+
+                    // Import notes
+                    for (const note of backup.notes) {
+                        await this.addNote(note);
+                    }
+
+                    // Import recurring
+                    for (const rec of backup.recurring) {
+                        await this.addRecurring(rec);
+                    }
+
+                    this.showToast('Data imported successfully', 'success');
+                    document.getElementById('importFile').value = '';
+                    await this.refreshDashboard();
+                } catch (error) {
+                    console.error('Error importing data:', error);
+                    this.showToast('Error importing data', 'error');
+                }
+            },
+
+            async clearAllData() {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(
+                        ['assets', 'transactions', 'goals', 'notes', 'recurring', 'settings'],
+                        'readwrite'
+                    );
+
+                    ['assets', 'transactions', 'goals', 'notes', 'recurring', 'settings'].forEach(store => {
+                        transaction.objectStore(store).clear();
+                    });
+
+                    transaction.onerror = () => reject(transaction.error);
+                    transaction.oncomplete = () => {
+                        this.showToast('All data cleared', 'success');
                         resolve();
                     };
                 });
             },
-            async getAll(storeName) {
-                return new Promise(res => {
-                    const tx = this.db.transaction(storeName, 'readonly');
-                    tx.objectStore(storeName).getAll().onsuccess = (e) => res(e.target.result);
-                });
-            },
-            async add(storeName, data) {
-                return new Promise(res => {
-                    const tx = this.db.transaction(storeName, 'readwrite');
-                    tx.objectStore(storeName).add(data).onsuccess = () => res();
-                });
-            },
-            async update(storeName, data) {
-                return new Promise(res => {
-                    const tx = this.db.transaction(storeName, 'readwrite');
-                    tx.objectStore(storeName).put(data).onsuccess = () => res();
-                });
-            },
-            async delete(storeName, id) {
-                return new Promise(res => {
-                    const tx = this.db.transaction(storeName, 'readwrite');
-                    tx.objectStore(storeName).delete(id).onsuccess = () => res();
-                });
-            },
-            async exportData() {
-                const assets = await this.getAll('assets');
-                const txns = await this.getAll('transactions');
-                const data = JSON.stringify({ assets, txns, timestamp: Date.now() });
-                const blob = new Blob([data], {type: 'application/json'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `aurelius_backup_${new Date().toISOString().split('T')[0]}.json`;
-                a.click();
-            },
-            async importData(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                    try {
-                        const data = JSON.parse(event.target.result);
-                        if (data.assets && data.txns) {
-                            const tx = this.db.transaction(['assets', 'transactions'], 'readwrite');
-                            data.assets.forEach(a => tx.objectStore('assets').put(a));
-                            data.txns.forEach(t => tx.objectStore('transactions').put(t));
-                            tx.oncomplete = () => location.reload();
-                        }
-                    } catch (err) { alert("Invalid backup file."); }
-                };
-                reader.readAsText(file);
-            },
-            clearAll() {
-                if (confirm("ERASE ALL DATA? This cannot be undone.")) {
-                    indexedDB.deleteDatabase(App.id);
-                    localStorage.clear();
-                    location.reload();
-                }
+
+            // ==================== UTILITIES ====================
+            showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
             }
         };
 
-        /**
-         * CALCULATION ENGINE
-         */
-        const Engine = {
-            calculateXIRR(transactions, currentValue) {
-                if (transactions.length === 0) return 0;
-                
-                // Add current value as a terminal transaction today
-                const flows = transactions.map(t => ({
-                    amount: t.type === 'Buy' ? -t.amount : (t.type === 'Sell' ? t.amount : t.amount),
-                    date: new Date(t.date)
-                }));
-                flows.push({ amount: currentValue, date: new Date() });
-
-                // Newton-Raphson implementation
-                let rate = 0.1; // 10% initial guess
-                for (let i = 0; i < 20; i++) {
-                    let npv = 0;
-                    let dnpv = 0;
-                    for (const f of flows) {
-                        const days = (f.date - flows[0].date) / (1000 * 60 * 60 * 24 * 365);
-                        npv += f.amount / Math.pow(1 + rate, days);
-                        dnpv -= days * f.amount / Math.pow(1 + rate, days + 1);
-                    }
-                    const newRate = rate - npv / dnpv;
-                    if (Math.abs(newRate - rate) < 0.0001) return newRate * 100;
-                    rate = newRate;
-                }
-                return rate * 100;
-            },
-            getHealth(netWorth, allocation) {
-                let score = 70;
-                if (allocation.length > 3) score += 10;
-                if (allocation.some(a => a.percent > 50)) score -= 20;
-                return Math.min(100, Math.max(0, score));
-            }
-        };
-
-        /**
-         * UI & RENDERING
-         */
-        const UI = {
-            currentScreen: 'dashboard',
-            navigate(screenId) {
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                document.getElementById(`screen-${screenId}`).classList.add('active');
-                document.querySelector(`[onclick="UI.navigate('${screenId}')"]`).classList.add('active');
-                this.currentScreen = screenId;
-                window.scrollTo(0,0);
-            },
-            showModal(id) { document.getElementById(id).style.display = 'flex'; },
-            closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); },
-
-            async refreshAll() {
-                const assets = await Storage.getAll('assets');
-                const txns = await Storage.getAll('transactions');
-                
-                this.renderDashboard(assets, txns);
-                this.renderAssets(assets, txns);
-                this.renderTransactions(txns, assets);
-                this.renderAnalysis(assets, txns);
-                
-                // Populate Selects
-                const sel = document.getElementById('txn-asset-id');
-                sel.innerHTML = assets.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-            },
-
-            renderDashboard(assets, txns) {
-                const total = assets.reduce((sum, a) => sum + parseFloat(a.value), 0);
-                document.getElementById('dashboard-total').innerText = `${App.currency}${total.toLocaleString()}`;
-                
-                const invested = txns.filter(t => t.type === 'Buy').reduce((sum, t) => sum + parseFloat(t.amount), 0) - 
-                                 txns.filter(t => t.type === 'Sell').reduce((sum, t) => sum + parseFloat(t.amount), 0);
-                document.getElementById('dash-invested').innerText = `${App.currency}${invested.toLocaleString()}`;
-
-                const profit = total - invested;
-                const pPercent = invested > 0 ? (profit / invested * 100).toFixed(1) : 0;
-                const deltaEl = document.getElementById('dashboard-delta');
-                deltaEl.innerText = `${profit >= 0 ? '+' : ''}${App.currency}${profit.toLocaleString()} (${pPercent}%)`;
-                deltaEl.className = `stat-delta ${profit >= 0 ? 'delta-pos' : 'delta-neg'}`;
-
-                // XIRR
-                const xirr = Engine.calculateXIRR(txns, total);
-                const xirrEl = document.getElementById('dash-xirr');
-                xirrEl.innerText = `${xirr.toFixed(1)}%`;
-                xirrEl.style.color = xirr >= 12 ? 'var(--success)' : (xirr >= 0 ? 'var(--primary)' : 'var(--danger)');
-
-                this.drawAllocation(assets, total);
-                this.drawForecast(total);
-            },
-
-            drawAllocation(assets, total) {
-                const ctx = document.getElementById('allocation-chart').getContext('2d');
-                const categories = {};
-                assets.forEach(a => {
-                    categories[a.category] = (categories[a.category] || 0) + parseFloat(a.value);
-                });
-
-                const data = Object.keys(categories).map(k => ({ label: k, value: categories[k] }));
-                const colors = ['#38bdf8', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6', '#ec4899'];
-                
-                // Clear and Draw
-                ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
-                let startAngle = 0;
-                const centerX = ctx.canvas.width / 2;
-                const centerY = ctx.canvas.height / 2;
-                const radius = Math.min(centerX, centerY) - 10;
-
-                data.forEach((d, i) => {
-                    const sliceAngle = (d.value / total) * 2 * Math.PI;
-                    ctx.beginPath();
-                    ctx.moveTo(centerX, centerY);
-                    ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
-                    ctx.fillStyle = colors[i % colors.length];
-                    ctx.fill();
-                    startAngle += sliceAngle;
-                });
-
-                // Legend
-                const legend = document.getElementById('allocation-legend');
-                legend.innerHTML = data.map((d, i) => `
-                    <div style="display:flex; align-items:center; gap:5px">
-                        <div style="width:10px; height:10px; border-radius:2px; background:${colors[i % colors.length]}"></div>
-                        <span>${d.label}: ${((d.value/total)*100).toFixed(0)}%</span>
-                    </div>
-                `).join('');
-            },
-
-            drawForecast(current) {
-                const ctx = document.getElementById('forecast-chart').getContext('2d');
-                ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
-                const points = [];
-                let val = current;
-                for(let i=0; i<=10; i++) {
-                    points.push(val);
-                    val *= 1.12; // 12% Growth
-                }
-
-                const max = points[points.length - 1];
-                const w = ctx.canvas.width;
-                const h = ctx.canvas.height;
-                
-                ctx.strokeStyle = '#38bdf8';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                points.forEach((p, i) => {
-                    const x = (i / 10) * w;
-                    const y = h - (p / max) * h;
-                    if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-                });
-                ctx.stroke();
-                
-                // Area
-                ctx.lineTo(w, h);
-                ctx.lineTo(0, h);
-                ctx.fillStyle = 'rgba(56, 189, 248, 0.1)';
-                ctx.fill();
-            },
-
-            async renderAssets(assets, txns) {
-                const list = document.getElementById('asset-list');
-                if (assets.length === 0) {
-                    list.innerHTML = `<div style="text-align:center; color:var(--text-dim); margin-top:2rem;">No assets found. Start by adding one.</div>`;
-                    return;
-                }
-
-                list.innerHTML = assets.map(a => {
-                    const aTxns = txns.filter(t => t.assetId == a.id);
-                    const cost = aTxns.filter(t => t.type === 'Buy').reduce((s, t) => s + t.amount, 0) - 
-                                 aTxns.filter(t => t.type === 'Sell').reduce((s, t) => s + t.amount, 0);
-                    const gain = a.value - cost;
-                    const gainPerc = cost > 0 ? (gain / cost * 100).toFixed(1) : 0;
-                    
-                    return `
-                        <div class="card" style="margin-bottom: 1rem; position: relative;">
-                            <button onclick="UI.deleteAsset(${a.id})" style="position:absolute; top:10px; right:10px; background:none; border:none; color:var(--text-dim); font-size:1.2rem;">×</button>
-                            <div class="stat-label">${a.category}</div>
-                            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                                <div>
-                                    <div style="font-size:1.1rem; font-weight:700;">${a.name}</div>
-                                    <div class="stat-delta ${gain >= 0 ? 'delta-pos' : 'delta-neg'}">${gain >= 0 ? '↑' : '↓'} ${App.currency}${Math.abs(gain).toLocaleString()} (${gainPerc}%)</div>
-                                </div>
-                                <div style="text-align:right">
-                                    <div style="font-size:1.2rem; font-weight:800;">${App.currency}${parseFloat(a.value).toLocaleString()}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            },
-
-            renderTransactions(txns, assets) {
-                const list = document.getElementById('txn-list');
-                if (txns.length === 0) {
-                    list.innerHTML = `<div style="text-align:center; color:var(--text-dim); margin-top:2rem;">No transactions recorded.</div>`;
-                    return;
-                }
-
-                const sorted = txns.sort((a, b) => new Date(b.date) - new Date(a.date));
-                list.innerHTML = sorted.map(t => {
-                    const asset = assets.find(a => a.id == t.assetId);
-                    const color = t.type === 'Buy' ? 'var(--danger)' : (t.type === 'Sell' ? 'var(--success)' : 'var(--primary)');
-                    const prefix = t.type === 'Buy' ? '-' : '+';
-                    return `
-                        <div class="list-item">
-                            <div>
-                                <div style="font-weight:600">${asset ? asset.name : 'Unknown Asset'}</div>
-                                <div style="font-size:0.75rem; color:var(--text-dim)">${new Date(t.date).toLocaleDateString()} • ${t.type}</div>
-                            </div>
-                            <div style="text-align:right; font-weight:700; color:${color}">
-                                ${prefix}${App.currency}${parseFloat(t.amount).toLocaleString()}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            },
-
-            renderAnalysis(assets, txns) {
-                const total = assets.reduce((s, a) => s + parseFloat(a.value), 0);
-                const categories = {};
-                assets.forEach(a => categories[a.category] = (categories[a.category] || 0) + parseFloat(a.value));
-                
-                const allocation = Object.keys(categories).map(k => ({ label: k, percent: (categories[k]/total)*100 }));
-                
-                const score = Engine.getHealth(total, allocation);
-                const scoreEl = document.getElementById('health-score');
-                scoreEl.innerText = score;
-                
-                let label = "Excellent";
-                if(score < 80) label = "Good";
-                if(score < 60) label = "Average";
-                if(score < 40) label = "High Risk";
-                document.getElementById('health-label').innerText = label;
-
-                // Passive Income (4% Rule Approximation)
-                const passive = (total * 0.04) / 12;
-                document.getElementById('passive-income').innerText = `${App.currency}${passive.toLocaleString(undefined, {maximumFractionDigits:0})} / mo`;
-
-                // Risk Analysis
-                let riskHTML = "";
-                if (allocation.some(a => a.percent > 50)) {
-                    riskHTML += `<div style="color:var(--danger)">⚠️ High concentration in ${allocation.find(a => a.percent > 50).label}. Consider diversifying.</div>`;
-                } else {
-                    riskHTML += `<div style="color:var(--success)">✅ Portfolio is well diversified.</div>`;
-                }
-                document.getElementById('risk-analysis').innerHTML = riskHTML;
-            },
-
-            async handleAssetSubmit(e) {
-                e.preventDefault();
-                const asset = {
-                    name: document.getElementById('asset-name').value,
-                    category: document.getElementById('asset-category').value,
-                    value: parseFloat(document.getElementById('asset-value').value)
-                };
-                await Storage.add('assets', asset);
-                this.closeModal();
-                e.target.reset();
-                this.refreshAll();
-            },
-
-            async handleTxnSubmit(e) {
-                e.preventDefault();
-                const txn = {
-                    assetId: document.getElementById('txn-asset-id').value,
-                    type: document.getElementById('txn-type').value,
-                    amount: parseFloat(document.getElementById('txn-amount').value),
-                    date: document.getElementById('txn-date').value
-                };
-                await Storage.add('transactions', txn);
-                this.closeModal();
-                e.target.reset();
-                this.refreshAll();
-            },
-
-            async deleteAsset(id) {
-                if (confirm("Delete this asset and its history?")) {
-                    await Storage.delete('assets', id);
-                    this.refreshAll();
-                }
-            },
-
-            updateSettings() {
-                const cfg = { currency: document.getElementById('setting-currency').value };
-                App.currency = cfg.currency;
-                localStorage.setItem('aurelius_settings', JSON.stringify(cfg));
-                this.refreshAll();
-            }
-        };
-
-        // Boot
-        window.onload = () => App.init();
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
     </script>
 </body>
 </html>
