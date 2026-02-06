@@ -1,0 +1,5 @@
+{
+  "name": "WealthVault PWA",
+  "description": "Offline-first, private personal investment tracker and wealth dashboard.",
+  "requestFramePermissions": []
+}

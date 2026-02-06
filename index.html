@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#121212">
+    <title>WealthVault</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+
+    <!-- Install Gatekeeper -->
+    <div id="install-gate" class="hidden">
+        <div class="gate-content">
+            <h1>WealthVault</h1>
+            <p>This is a secure, offline-first application.</p>
+            <p>To ensure data persistence and security, please install the app to your device.</p>
+            <button id="btn-install-pwa" class="btn-primary">Install App</button>
+            <p class="small-text">Or add to Home Screen manually</p>
+        </div>
+    </div>
+
+    <!-- App Shell -->
+    <div id="app" class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="brand">WealthVault</div>
+            <ul class="nav-links">
+                <li data-view="dashboard" class="active">Dashboard</li>
+                <li data-view="portfolio">Portfolio</li>
+                <li data-view="ledger">Ledger</li>
+                <li data-view="analysis">Intelligence</li>
+                <li data-view="goals">Goals</li>
+                <li data-view="settings">Settings</li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h2 id="page-title">Dashboard</h2>
+                <div class="actions">
+                    <button id="btn-add-tx" class="btn-accent">+ Transaction</button>
+                </div>
+            </header>
+
+            <!-- Views -->
+            
+            <!-- Dashboard View -->
+            <section id="view-dashboard" class="view active">
+                <div class="summary-cards">
+                    <div class="card widget">
+                        <h3>Net Worth</h3>
+                        <div class="value" id="dash-networth">0.00</div>
+                    </div>
+                    <div class="card widget">
+                        <h3>Total Profit/Loss</h3>
+                        <div class="value" id="dash-pl">0.00</div>
+                        <div class="sub-value" id="dash-pl-pct">0.00%</div>
+                    </div>
+                    <div class="card widget">
+                        <h3>XIRR</h3>
+                        <div class="value" id="dash-xirr">0.0%</div>
+                    </div>
+                    <div class="card widget">
+                        <h3>Passive Income (YTD)</h3>
+                        <div class="value" id="dash-income">0.00</div>
+                    </div>
+                </div>
+
+                <div class="chart-container card">
+                    <h3>Wealth History</h3>
+                    <canvas id="wealthChart"></canvas>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>Allocation</h3>
+                        <canvas id="allocationChart"></canvas>
+                        <div id="allocation-legend" class="legend"></div>
+                    </div>
+                    <div class="card">
+                        <h3>Health Score</h3>
+                        <div class="health-ring">
+                            <svg viewBox="0 0 36 36" class="circular-chart">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle" id="health-circle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="percentage" id="health-score-text">0</div>
+                        </div>
+                        <p id="health-msg" class="text-center text-muted">Analyzing...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Portfolio View -->
+            <section id="view-portfolio" class="view">
+                <div class="filter-bar">
+                    <input type="text" id="asset-search" placeholder="Search assets...">
+                    <button class="btn-small" id="btn-add-asset">New Asset</button>
+                </div>
+                <div class="table-responsive card">
+                    <table id="portfolio-table">
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Price</th>
+                                <th>Units</th>
+                                <th>Avg Cost</th>
+                                <th>Current Value</th>
+                                <th>Gain/Loss</th>
+                                <th>Alloc %</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Ledger View -->
+            <section id="view-ledger" class="view">
+                <div class="card">
+                    <h3>Transaction History</h3>
+                    <div class="table-responsive">
+                        <table id="ledger-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Asset</th>
+                                    <th>Amount</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analysis View -->
+            <section id="view-analysis" class="view">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>Risk Analysis</h3>
+                        <ul id="risk-list" class="stat-list"></ul>
+                    </div>
+                    <div class="card">
+                        <h3>Projections</h3>
+                        <p>Forecasted value in 10 years (at current CAGR)</p>
+                        <h2 id="proj-value">...</h2>
+                    </div>
+                    <div class="card">
+                        <h3>Rebalancing Needed</h3>
+                        <ul id="rebalance-list" class="stat-list"></ul>
+                    </div>
+                    <div class="card">
+                        <h3>Opportunity Check</h3>
+                        <p>Idle Cash: <span id="opp-cash">0</span></p>
+                        <p>Lowest Performing Asset: <span id="opp-weak">None</span></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Goals View -->
+            <section id="view-goals" class="view">
+                <button class="btn-primary mb-2" id="btn-add-goal">Add Financial Goal</button>
+                <div id="goals-container" class="grid-2"></div>
+            </section>
+
+            <!-- Settings View -->
+            <section id="view-settings" class="view">
+                <div class="card">
+                    <h3>Data Management</h3>
+                    <p>Your data is stored only on this device.</p>
+                    <div class="actions-row">
+                        <button id="btn-export" class="btn-outline">Export JSON Backup</button>
+                        <label class="btn-outline file-label">
+                            Import Backup <input type="file" id="file-import" hidden>
+                        </label>
+                        <button id="btn-wipe" class="btn-danger">Wipe All Data</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>About</h3>
+                    <p>WealthVault v1.0.0 (Offline PWA)</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="modal-overlay hidden"></div>
+
+    <!-- Transaction Modal -->
+    <div id="modal-tx" class="modal hidden">
+        <h3>Add Transaction</h3>
+        <form id="form-tx">
+            <div class="form-group">
+                <label>Type</label>
+                <select id="tx-type" required>
+                    <option value="BUY">Buy</option>
+                    <option value="SELL">Sell</option>
+                    <option value="DIVIDEND">Dividend/Income</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Asset</label>
+                <select id="tx-asset" required></select>
+            </div>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="tx-date" required>
+            </div>
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" step="0.0001" id="tx-qty" required>
+            </div>
+            <div class="form-group">
+                <label>Price per Unit</label>
+                <input type="number" step="0.01" id="tx-price" required>
+            </div>
+            <div class="form-group">
+                <label>Fees</label>
+                <input type="number" step="0.01" id="tx-fees" value="0">
+            </div>
+            <div class="actions-row">
+                <button type="button" class="btn-text close-modal">Cancel</button>
+                <button type="submit" class="btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Asset Modal -->
+    <div id="modal-asset" class="modal hidden">
+        <h3>New Asset</h3>
+        <form id="form-asset">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="asset-name" required placeholder="e.g. Apple Stock">
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select id="asset-type">
+                    <option value="STOCK">Stock</option>
+                    <option value="ETF">ETF</option>
+                    <option value="MF">Mutual Fund</option>
+                    <option value="GOLD">Gold</option>
+                    <option value="CRYPTO">Crypto</option>
+                    <option value="CASH">Cash</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Current Market Price (Initial)</label>
+                <input type="number" step="0.01" id="asset-current-price" required>
+            </div>
+            <div class="form-group">
+                <label>Target Allocation %</label>
+                <input type="number" step="1" id="asset-target-alloc" value="0">
+            </div>
+            <div class="actions-row">
+                <button type="button" class="btn-text close-modal">Cancel</button>
+                <button type="submit" class="btn-primary">Create Asset</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Goal Modal -->
+    <div id="modal-goal" class="modal hidden">
+        <h3>Set Goal</h3>
+        <form id="form-goal">
+            <div class="form-group">
+                <label>Goal Name</label>
+                <input type="text" id="goal-name" required placeholder="e.g. Retirement">
+            </div>
+            <div class="form-group">
+                <label>Target Amount</label>
+                <input type="number" step="100" id="goal-target" required>
+            </div>
+            <div class="actions-row">
+                <button type="button" class="btn-text close-modal">Cancel</button>
+                <button type="submit" class="btn-primary">Save Goal</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Price Update Modal -->
+    <div id="modal-price" class="modal hidden">
+        <h3>Update Price: <span id="price-asset-name"></span></h3>
+        <form id="form-price">
+            <input type="hidden" id="price-asset-id">
+            <div class="form-group">
+                <label>New Price</label>
+                <input type="number" step="0.01" id="new-price-input" required>
+            </div>
+            <div class="actions-row">
+                <button type="button" class="btn-text close-modal">Cancel</button>
+                <button type="submit" class="btn-primary">Update</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="calculations.js"></script>
+    <script src="ui.js"></script>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(reg => console.log('SW Registered'))
+                .catch(err => console.log('SW Error', err));
+        }
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
