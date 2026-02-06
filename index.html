@@ -12,21 +12,28 @@
 </head>
 <body>
 
-    <!-- Install Gatekeeper -->
-    <div id="install-gate" class="hidden">
-        <div class="gate-content">
-            <h1>WealthVault</h1>
-            <p>This is a secure, offline-first application.</p>
-            <p>To ensure data persistence and security, please install the app to your device.</p>
-            <button id="btn-install-pwa" class="btn-primary hidden">Install App</button>
-            <p class="small-text">Or add to Home Screen manually</p>
+    <!-- Install Prompt Modal (Non-blocking) -->
+    <div id="modal-install" class="modal-overlay hidden">
+        <div class="modal install-modal">
+            <h3>Install WealthVault</h3>
+            <p>Install this app on your home screen for the best offline experience.</p>
+            
+            <div id="install-android" class="hidden">
+                <button id="btn-install-pwa-native" class="btn-primary full-width">Install App</button>
+            </div>
+            
+            <div id="install-ios" class="hidden">
+                <p class="instruction">Tap the Share button <span style="font-size:1.2rem">⎋</span> in your browser menu, then select <strong>"Add to Home Screen"</strong>.</p>
+            </div>
+            
+            <button id="btn-dismiss-install" class="btn-text mt-2">Continue in Browser</button>
         </div>
     </div>
 
     <!-- App Shell -->
     <div id="app" class="app-container">
         
-        <!-- Sidebar Navigation -->
+        <!-- Desktop Sidebar -->
         <nav class="sidebar">
             <div class="brand">WealthVault</div>
             <ul class="nav-links">
@@ -39,11 +46,40 @@
             </ul>
         </nav>
 
+        <!-- Mobile Bottom Navigation -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" data-view="dashboard">
+                <span class="icon">📊</span>
+                <span class="label">Dash</span>
+            </div>
+            <div class="nav-item" data-view="portfolio">
+                <span class="icon">💼</span>
+                <span class="label">Assets</span>
+            </div>
+            <div class="nav-item" data-view="ledger">
+                <span class="icon">📝</span>
+                <span class="label">Ledger</span>
+            </div>
+            <div class="nav-item" data-view="analysis">
+                <span class="icon">🧠</span>
+                <span class="label">Analysis</span>
+            </div>
+             <div class="nav-item" data-view="goals">
+                <span class="icon">🎯</span>
+                <span class="label">Goals</span>
+            </div>
+            <div class="nav-item" data-view="settings">
+                <span class="icon">⚙️</span>
+                <span class="label">Settings</span>
+            </div>
+        </nav>
+
         <!-- Main Content Area -->
         <main class="main-content">
             <header class="top-bar">
                 <h2 id="page-title">Dashboard</h2>
-                <div class="actions">
+                <!-- Desktop Action Button -->
+                <div class="actions desktop-only">
                     <button id="btn-add-tx" class="btn-accent">+ Transaction</button>
                 </div>
             </header>
@@ -228,10 +264,14 @@
                 <div class="card">
                     <h3>About</h3>
                     <p>WealthVault v1.1.0 (Offline PWA)</p>
+                    <button id="btn-show-install" class="btn-outline mt-2">Install App</button>
                 </div>
             </section>
 
         </main>
+        
+        <!-- Mobile FAB for Transaction -->
+        <button id="btn-fab-tx" class="fab-btn mobile-only">+</button>
     </div>
 
     <!-- Modals -->

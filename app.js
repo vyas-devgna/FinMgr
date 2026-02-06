@@ -8,9 +8,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     window.deferredPrompt = e;
     console.log('Install Prompt Captured');
-    // If UI is ready, show button
-    const btn = document.getElementById('btn-install-pwa');
-    if(btn) btn.classList.remove('hidden');
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -23,30 +20,50 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('Storage Initialization Failed. App may not work.');
     }
 
-    // 2. Navigation Logic
-    const navLinks = document.querySelectorAll('.nav-links li');
+    // 2. Navigation Logic (Desktop Sidebar + Mobile Bottom Nav)
+    const navLinks = document.querySelectorAll('.nav-links li, .nav-item');
     const views = document.querySelectorAll('.view');
     const pageTitle = document.getElementById('page-title');
 
-    navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            navLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-            
-            const viewId = link.getAttribute('data-view');
-            views.forEach(v => v.classList.remove('active'));
-            document.getElementById(`view-${viewId}`).classList.add('active');
-            pageTitle.innerText = link.innerText;
+    // Function to handle view switching
+    const switchView = (targetLink) => {
+        const viewId = targetLink.getAttribute('data-view');
+        
+        // Update Active States for both Navs
+        document.querySelectorAll('.nav-links li, .nav-item').forEach(l => {
+            if(l.getAttribute('data-view') === viewId) l.classList.add('active');
+            else l.classList.remove('active');
+        });
 
-            if(viewId === 'portfolio') loadData(); 
-            if(viewId === 'ledger') loadData(); // Reload to refresh filters if needed
-            if(viewId === 'analysis') runAnalysis();
-            if(viewId === 'settings') loadSettings();
+        // Show View
+        views.forEach(v => v.classList.remove('active'));
+        document.getElementById(`view-${viewId}`).classList.add('active');
+        
+        // Update Title (Get text from desktop link usually)
+        const titleText = targetLink.querySelector('.label')?.innerText || targetLink.innerText;
+        pageTitle.innerText = titleText;
+
+        // Triggers
+        if(viewId === 'portfolio') loadData(); 
+        if(viewId === 'ledger') loadData();
+        if(viewId === 'analysis') runAnalysis();
+        if(viewId === 'settings') loadSettings();
+        
+        // Scroll to top
+        document.querySelector('.main-content').scrollTo(0,0);
+    };
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            // Find the closest clickable element (for icon spans)
+            const target = e.target.closest('[data-view]');
+            if(target) switchView(target);
         });
     });
 
-    // 3. Modal Logic
+    // 3. Modal Logic & FAB
     setupModal('btn-add-tx', 'modal-tx');
+    setupModal('btn-fab-tx', 'modal-tx'); // Mobile FAB
     setupModal('btn-add-asset', 'modal-asset');
     
     // Custom Goal Modal open to populate checklist
@@ -173,8 +190,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await db.update('assets', asset);
                     updated++;
                 }
-                // Delay 12s to stay under 5 req/min (Free tier limitation)
-                // If user has paid key, this is slow, but safe default.
                 await new Promise(r => setTimeout(r, 12000));
             } catch (err) {
                 console.error('Fetch error', err);
@@ -249,6 +264,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initial Install Check
     checkInstallStatus();
+
+    // Trigger Install Modal Manually
+    const manualInstallBtn = document.getElementById('btn-show-install');
+    if(manualInstallBtn) manualInstallBtn.addEventListener('click', showInstallModal);
+    
+    // Install Modal Buttons
+    document.getElementById('btn-dismiss-install').addEventListener('click', () => {
+        document.getElementById('modal-install').classList.add('hidden');
+    });
+    
+    document.getElementById('btn-install-pwa-native').addEventListener('click', async () => {
+        if(window.deferredPrompt) {
+            window.deferredPrompt.prompt();
+            const { outcome } = await window.deferredPrompt.userChoice;
+            if(outcome === 'accepted') {
+                document.getElementById('modal-install').classList.add('hidden');
+            }
+            window.deferredPrompt = null;
+        }
+    });
 });
 
 // --- Core Logic ---
@@ -279,10 +314,7 @@ async function loadData() {
     updateElement('dash-pl-pct', UI.formatPct(totalCost > 0 ? (totalPL/totalCost)*100 : 0));
     updateElement('dash-income', UI.formatCurrency(totalIncome));
 
-    // Calculate XIRR (using only non-liability txs roughly)
-    // Filter txs for XIRR? 
-    // Ideally, we include debt if it's leverage. If it's personal loan, maybe not.
-    // For now, include all to reflect true cashflow impact on wealth.
+    // Calculate XIRR
     const xirr = Finance.xirr(transactions, window.totalWealth);
     updateElement('dash-xirr', UI.formatPct(xirr));
 
@@ -343,8 +375,6 @@ function runAnalysis() {
         return;
     }
     
-    // Recalculate health for explicit messages
-    // (This is duplicated logic from calc but needed for text output)
     list.innerHTML += '<li>Basic Health Check complete. See Score.</li>';
     if(window.totalWealth < 0) list.innerHTML += '<li><span style="color:var(--error)">Warning: Negative Net Worth</span></li>';
 }
@@ -398,29 +428,41 @@ function closeModals() {
 
 document.querySelectorAll('.close-modal').forEach(b => b.addEventListener('click', closeModals));
 
-// Install Gatekeeper
+// Install Logic
 function checkInstallStatus() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     
+    // Only show if NOT standalone and we haven't shown it this session (simplified)
     if (!isStandalone) {
-        // We are in browser tab
-        const gate = document.getElementById('install-gate');
-        gate.classList.remove('hidden');
+        // Delay slightly to allow deferredPrompt to capture
+        setTimeout(showInstallModal, 2000);
+    }
+}
 
-        // Check if event already fired
-        if(window.deferredPrompt) {
-             document.getElementById('btn-install-pwa').classList.remove('hidden');
+function showInstallModal() {
+    const modal = document.getElementById('modal-install');
+    const androidBtn = document.getElementById('install-android');
+    const iosInstr = document.getElementById('install-ios');
+
+    // Detect iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    if (window.deferredPrompt) {
+        // Chrome/Android with event captured
+        androidBtn.classList.remove('hidden');
+        iosInstr.classList.add('hidden');
+        modal.classList.remove('hidden');
+    } else if (isIOS) {
+        // iOS Safari (No event, requires manual instruction)
+        androidBtn.classList.add('hidden');
+        iosInstr.classList.remove('hidden');
+        modal.classList.remove('hidden');
+    } else {
+        // Desktop or unrecognized. If triggered manually by button, show generic text?
+        // If automatic check, maybe don't show if we can't do anything useful.
+        // For now, only show if we have prompt or iOS.
+        if (!document.getElementById('modal-install').classList.contains('hidden')) {
+             // Already open?
         }
-
-        document.getElementById('btn-install-pwa').addEventListener('click', async () => {
-            if (window.deferredPrompt) {
-                window.deferredPrompt.prompt();
-                const { outcome } = await window.deferredPrompt.userChoice;
-                if(outcome === 'accepted') {
-                    gate.classList.add('hidden');
-                }
-                window.deferredPrompt = null;
-            }
-        });
     }
 }
