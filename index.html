@@ -3,411 +3,783 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#121212">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Offline-First Private Wealth Tracker">
     <title>WealthVault</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="stylesheet" href="/index.css">
+    
+    <!-- SYSTEM STYLES -->
+    <style>
+        :root {
+            --bg: #0f172a; --surface: #1e293b; --surface-2: #334155;
+            --primary: #3b82f6; --primary-dim: #1d4ed8;
+            --accent: #10b981; --danger: #ef4444; --warning: #f59e0b;
+            --text: #f8fafc; --text-dim: #94a3b8;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; font-family: var(--font-main); background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        
+        /* UTILS */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .center { align-items: center; justify-content: center; }
+        .scroll-y { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .text-sm { font-size: 0.85rem; }
+        .text-xs { font-size: 0.7rem; }
+        .text-dim { color: var(--text-dim); }
+        .text-green { color: var(--accent); }
+        .text-red { color: var(--danger); }
+        
+        /* LAYOUT */
+        #app { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; }
+        main { flex: 1; overflow-y: auto; padding: 1rem; padding-bottom: 5rem; }
+        
+        /* COMPONENTS */
+        .card { background: var(--surface); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.05); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        
+        /* TYPOGRAPHY */
+        h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.025em; }
+        h1 { font-size: 1.75rem; }
+        h2 { font-size: 1.1rem; color: var(--text-dim); margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+        .money { font-family: 'Monaco', 'Consolas', monospace; letter-spacing: -0.5px; }
+        
+        /* INPUTS */
+        button, input, select { font-family: inherit; font-size: 1rem; outline: none; border: none; }
+        .btn { background: var(--primary); color: white; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: transform 0.1s; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .btn:active { transform: scale(0.96); }
+        .btn-ghost { background: transparent; color: var(--text-dim); }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 8px; }
+        .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .btn-float { position: fixed; bottom: 6rem; right: 1.5rem; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: var(--accent); box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4); z-index: 50; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        
+        .input-group { background: var(--bg); border: 1px solid var(--surface-2); border-radius: 12px; padding: 0.75rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+        .input-group:focus-within { border-color: var(--primary); }
+        .input-group label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.25rem; }
+        .input-group input, .input-group select { width: 100%; background: transparent; color: white; padding: 0.25rem 0; font-weight: 500; }
+        
+        /* NAVIGATION */
+        nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.05); padding: 0.75rem 1rem 1.5rem; display: flex; justify-content: space-around; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-dim); font-size: 0.7rem; cursor: pointer; transition: color 0.2s; padding: 0.5rem; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item svg { width: 24px; height: 24px; stroke-width: 2px; }
+
+        /* INSTALL GATE */
+        #install-gate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
+        .gate-icon { width: 80px; height: 80px; margin-bottom: 1.5rem; fill: var(--primary); }
+        
+        /* CHARTS */
+        canvas { width: 100%; height: auto; }
+        
+        /* LISTS */
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--surface-2); }
+        .list-item:last-child { border-bottom: none; }
+        .chip { padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; background: var(--surface-2); }
+        
+        /* TOAST */
+        #toast-container { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 200; pointer-events: none; width: 90%; max-width: 400px; }
+        .toast { background: var(--surface-2); color: white; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 0.9rem; animation: slideIn 0.3s var(--ease); pointer-events: auto; display: flex; align-items: center; gap: 0.5rem; border-left: 4px solid var(--primary); }
+        @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* SPINNER */
+        .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.1); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
 
-    <!-- Install Prompt Modal (Non-blocking) -->
-    <div id="modal-install" class="modal-overlay hidden">
-        <div class="modal install-modal">
-            <h3>Install WealthVault</h3>
-            <p>Install this app on your home screen for the best offline experience.</p>
-            
-            <div id="install-android" class="hidden">
-                <button id="btn-install-pwa-native" class="btn-primary full-width">Install App</button>
+    <!-- APP SHELL -->
+    <div id="install-gate">
+        <svg class="gate-icon" viewBox="0 0 24 24">
+            <path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/>
+        </svg>
+        <h1>System Locked</h1>
+        <p style="margin: 1rem 0 2rem; color: var(--text-dim); max-width: 300px;">
+            WealthVault is a secure, offline-only environment. It must be installed as a system application to ensure data persistence and encryption security.
+        </p>
+        <button id="install-btn" class="btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Install Securely
+        </button>
+        <p id="ios-instruct" class="hidden text-sm text-dim" style="margin-top: 2rem;">
+            Tap <span style="font-weight:bold">Share</span> then <span style="font-weight:bold">Add to Home Screen</span>
+        </p>
+    </div>
+
+    <div id="app" class="hidden">
+        <div id="toast-container"></div>
+        <main id="main-view"></main>
+        
+        <nav>
+            <div class="nav-item active" onclick="Router.go('dashboard')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>Home</span>
             </div>
-            
-            <div id="install-ios" class="hidden">
-                <p class="instruction">Tap the Share button <span style="font-size:1.2rem">⎋</span> in your browser menu, then select <strong>"Add to Home Screen"</strong>.</p>
+            <div class="nav-item" onclick="Router.go('assets')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                <span>Assets</span>
             </div>
-            
-            <button id="btn-dismiss-install" class="btn-text mt-2">Continue in Browser</button>
+            <div class="nav-item" onclick="Router.go('history')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span>Ledger</span>
+            </div>
+            <div class="nav-item" onclick="Router.go('settings')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <span>System</span>
+            </div>
+        </nav>
+
+        <div class="btn-float" onclick="Router.go('add')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </div>
     </div>
 
-    <!-- App Shell -->
-    <div id="app" class="app-container">
+    <!-- LOGIC CORE -->
+    <script>
+        /**
+         * CORE 1: PWA INJECTION ENGINE
+         * Dynamically generates Manifest and Service Worker from strings.
+         */
+        const APP_ID = 'wealthvault_v1';
         
-        <!-- Desktop Sidebar -->
-        <nav class="sidebar">
-            <div class="brand">WealthVault</div>
-            <ul class="nav-links">
-                <li data-view="dashboard" class="active">Dashboard</li>
-                <li data-view="portfolio">Portfolio</li>
-                <li data-view="ledger">Ledger</li>
-                <li data-view="analysis">Intelligence</li>
-                <li data-view="goals">Goals</li>
-                <li data-view="settings">Settings</li>
-            </ul>
-        </nav>
+        const manifest = {
+            name: "WealthVault",
+            short_name: "WealthVault",
+            start_url: ".",
+            display: "standalone",
+            background_color: "#0f172a",
+            theme_color: "#0f172a",
+            icons: [{
+                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%230f172a'/%3E%3Cpath d='M256 64L64 448h384L256 64zm0 88l112 224H144L256 152z' fill='%233b82f6'/%3E%3C/svg%3E",
+                sizes: "192x192 512x512",
+                type: "image/svg+xml"
+            }]
+        };
 
-        <!-- Mobile Bottom Navigation -->
-        <nav class="bottom-nav">
-            <div class="nav-item active" data-view="dashboard">
-                <span class="icon">📊</span>
-                <span class="label">Dash</span>
-            </div>
-            <div class="nav-item" data-view="portfolio">
-                <span class="icon">💼</span>
-                <span class="label">Assets</span>
-            </div>
-            <div class="nav-item" data-view="ledger">
-                <span class="icon">📝</span>
-                <span class="label">Ledger</span>
-            </div>
-            <div class="nav-item" data-view="analysis">
-                <span class="icon">🧠</span>
-                <span class="label">Analysis</span>
-            </div>
-             <div class="nav-item" data-view="goals">
-                <span class="icon">🎯</span>
-                <span class="label">Goals</span>
-            </div>
-            <div class="nav-item" data-view="settings">
-                <span class="icon">⚙️</span>
-                <span class="label">Settings</span>
-            </div>
-        </nav>
+        const swCode = `
+            const CACHE = '${APP_ID}';
+            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.add('./'))));
+            self.addEventListener('fetch', e => e.respondWith(
+                caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./')))
+            ));
+        `;
 
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <header class="top-bar">
-                <h2 id="page-title">Dashboard</h2>
-                <!-- Desktop Action Button -->
-                <div class="actions desktop-only">
-                    <button id="btn-add-tx" class="btn-accent">+ Transaction</button>
-                </div>
-            </header>
+        function injectPWA() {
+            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = URL.createObjectURL(manifestBlob);
+            document.head.appendChild(link);
 
-            <!-- Views -->
-            
-            <!-- Dashboard View -->
-            <section id="view-dashboard" class="view active">
-                <div class="summary-cards">
-                    <div class="card widget">
-                        <h3>Net Worth</h3>
-                        <div class="value" id="dash-networth">0.00</div>
-                    </div>
-                    <div class="card widget">
-                        <h3>Total Profit/Loss</h3>
-                        <div class="value" id="dash-pl">0.00</div>
-                        <div class="sub-value" id="dash-pl-pct">0.00%</div>
-                    </div>
-                    <div class="card widget">
-                        <h3>XIRR</h3>
-                        <div class="value" id="dash-xirr">0.0%</div>
-                    </div>
-                    <div class="card widget">
-                        <h3>Passive Income (YTD)</h3>
-                        <div class="value" id="dash-income">0.00</div>
-                    </div>
-                </div>
+            if ('serviceWorker' in navigator) {
+                const swBlob = new Blob([swCode], {type: 'text/javascript'});
+                navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+                    .then(() => console.log('SW Registered'))
+                    .catch(console.error);
+            }
+        }
 
-                <div class="chart-container card">
-                    <h3>Wealth History</h3>
-                    <canvas id="wealthChart"></canvas>
-                </div>
+        /**
+         * CORE 2: DATABASE & STATE
+         * IndexedDB Wrapper + Central State Management
+         */
+        const DB = {
+            name: 'WealthVaultDB',
+            version: 1,
+            db: null,
+            init() {
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open(this.name, this.version);
+                    req.onupgradeneeded = e => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('assets')) db.createObjectStore('assets', {keyPath: 'id'});
+                        if (!db.objectStoreNames.contains('transactions')) {
+                            const store = db.createObjectStore('transactions', {keyPath: 'id'});
+                            store.createIndex('assetId', 'assetId', {unique: false});
+                            store.createIndex('date', 'date', {unique: false});
+                        }
+                        if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', {keyPath: 'key'});
+                    };
+                    req.onsuccess = e => { this.db = e.target.result; resolve(); };
+                    req.onerror = e => reject(e);
+                });
+            },
+            op(storeName, mode, callback) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(storeName, mode);
+                    const store = tx.objectStore(storeName);
+                    const req = callback(store);
+                    req.onsuccess = e => resolve(e.target.result);
+                    req.onerror = e => reject(e);
+                });
+            },
+            getAll: (store) => DB.op(store, 'readonly', s => s.getAll()),
+            put: (store, data) => DB.op(store, 'readwrite', s => s.put(data)),
+            del: (store, key) => DB.op(store, 'readwrite', s => s.delete(key)),
+            clear: (store) => DB.op(store, 'readwrite', s => s.clear())
+        };
 
-                <div class="grid-2">
-                    <div class="card">
-                        <h3>Allocation</h3>
-                        <canvas id="allocationChart"></canvas>
-                        <div id="allocation-legend" class="legend"></div>
-                    </div>
-                    <div class="card">
-                        <h3>Health Score</h3>
-                        <div class="health-ring">
-                            <svg viewBox="0 0 36 36" class="circular-chart">
-                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path class="circle" id="health-circle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            </svg>
-                            <div class="percentage" id="health-score-text">0</div>
-                        </div>
-                        <p id="health-msg" class="text-center text-muted">Analyzing...</p>
-                    </div>
-                </div>
-            </section>
+        const Store = {
+            assets: [],
+            transactions: [],
+            settings: { currency: 'USD' },
+            async init() {
+                await DB.init();
+                this.assets = await DB.getAll('assets');
+                this.transactions = await DB.getAll('transactions');
+                const s = await DB.getAll('settings');
+                if(s.length) s.forEach(setting => this.settings[setting.key] = setting.value);
+            },
+            async addTransaction(tx) {
+                await DB.put('transactions', tx);
+                this.transactions.push(tx);
+                
+                // Update Asset Price if manual
+                const asset = this.assets.find(a => a.id === tx.assetId);
+                if(asset && tx.price > 0 && tx.type === 'buy') {
+                    asset.currentPrice = tx.price;
+                    await DB.put('assets', asset);
+                }
+                Router.render();
+            },
+            async addAsset(asset) {
+                await DB.put('assets', asset);
+                this.assets.push(asset);
+                Router.render();
+            },
+            async deleteTransaction(id) {
+                await DB.del('transactions', id);
+                this.transactions = this.transactions.filter(t => t.id !== id);
+                Router.render();
+            },
+            async importData(json) {
+                try {
+                    const data = JSON.parse(json);
+                    await DB.clear('assets');
+                    await DB.clear('transactions');
+                    for(const a of data.assets) await DB.put('assets', a);
+                    for(const t of data.transactions) await DB.put('transactions', t);
+                    location.reload();
+                } catch(e) { alert('Corrupt Data File'); }
+            }
+        };
 
-            <!-- Portfolio View -->
-            <section id="view-portfolio" class="view">
-                <div class="filter-bar">
-                    <input type="text" id="asset-search" placeholder="Search assets...">
-                    <button class="btn-small" id="btn-update-prices">fetch prices</button>
-                    <button class="btn-small" id="btn-add-asset">New Asset</button>
-                </div>
-                <div class="table-responsive card">
-                    <table id="portfolio-table">
-                        <thead>
-                            <tr>
-                                <th>Asset</th>
-                                <th>Price</th>
-                                <th>Units</th>
-                                <th>Avg Cost</th>
-                                <th>Current Value</th>
-                                <th>Gain/Loss</th>
-                                <th>Alloc %</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Ledger View -->
-            <section id="view-ledger" class="view">
-                <div class="card">
-                    <h3>Transaction History</h3>
+        /**
+         * CORE 3: MATH ENGINE
+         * High-precision financial calculations
+         */
+        const MathEngine = {
+            calculatePortfolio(assets, txs) {
+                let totalValue = 0;
+                let totalInvested = 0;
+                let portfolio = assets.map(asset => {
+                    const assetTxs = txs.filter(t => t.assetId === asset.id).sort((a,b) => new Date(a.date) - new Date(b.date));
+                    let units = 0;
+                    let invested = 0;
                     
-                    <!-- Filters -->
-                    <div class="ledger-filters grid-3 mb-2">
-                        <div class="form-group">
-                            <label>Date Range</label>
-                            <div style="display:flex; gap:5px;">
-                                <input type="date" id="filter-date-start">
-                                <input type="date" id="filter-date-end">
+                    assetTxs.forEach(t => {
+                        if (t.type === 'buy') {
+                            units += parseFloat(t.units);
+                            invested += (parseFloat(t.units) * parseFloat(t.price)) + (parseFloat(t.fee || 0));
+                        } else if (t.type === 'sell') {
+                            // Pro-rata reduction of invested capital
+                            const sellRatio = parseFloat(t.units) / units;
+                            invested -= (invested * sellRatio);
+                            units -= parseFloat(t.units);
+                        }
+                    });
+
+                    const currentValue = units * parseFloat(asset.currentPrice || 0);
+                    totalValue += currentValue;
+                    totalInvested += invested;
+
+                    return {
+                        ...asset,
+                        units,
+                        invested,
+                        currentValue,
+                        gain: currentValue - invested,
+                        gainPercent: invested > 0 ? ((currentValue - invested) / invested) * 100 : 0
+                    };
+                }).filter(a => a.units > 0.000001); // Filter empty assets
+
+                return { items: portfolio, totalValue, totalInvested, gain: totalValue - totalInvested };
+            },
+            
+            // Newton-Raphson XIRR
+            xirr(transactions, currentValue) {
+                if (!transactions.length) return 0;
+                const dates = transactions.map(t => new Date(t.date));
+                const values = transactions.map(t => t.type === 'buy' ? -(t.units * t.price + (t.fee || 0)) : (t.units * t.price - (t.fee || 0)));
+                
+                // Add current valuation as a "sell" today
+                dates.push(new Date());
+                values.push(currentValue);
+
+                const guess = 0.1;
+                const maxIter = 50;
+                let rate = guess;
+                
+                for(let i=0; i<maxIter; i++) {
+                    let fx = 0;
+                    let dfx = 0;
+                    for(let j=0; j<values.length; j++) {
+                        const years = (dates[j] - dates[0]) / (1000 * 60 * 60 * 24 * 365);
+                        fx += values[j] / Math.pow(1 + rate, years);
+                        dfx -= (years * values[j]) / Math.pow(1 + rate, years + 1);
+                    }
+                    const newRate = rate - fx / dfx;
+                    if(Math.abs(newRate - rate) < 1e-6) return newRate * 100;
+                    rate = newRate;
+                }
+                return isNaN(rate) ? 0 : rate * 100;
+            }
+        };
+
+        /**
+         * CORE 4: UTILS
+         */
+        const Utils = {
+            fmtMoney: (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: Store.settings.currency }).format(n),
+            uuid: () => Date.now().toString(36) + Math.random().toString(36).substr(2),
+            today: () => new Date().toISOString().split('T')[0],
+            toast: (msg, type='success') => {
+                const el = document.createElement('div');
+                el.className = `toast`;
+                el.style.borderLeftColor = type === 'error' ? 'var(--danger)' : 'var(--primary)';
+                el.innerHTML = `<span>${msg}</span>`;
+                document.getElementById('toast-container').appendChild(el);
+                setTimeout(() => el.remove(), 3000);
+            }
+        };
+
+        /**
+         * CORE 5: UI COMPONENTS & ROUTER
+         */
+        const Components = {
+            Dashboard() {
+                const data = MathEngine.calculatePortfolio(Store.assets, Store.transactions);
+                const xirr = MathEngine.xirr(Store.transactions, data.totalValue);
+                const health = Math.min(100, Math.max(0, (data.gainPercent * 2) + (xirr > 10 ? 20 : 0) + (Store.assets.length > 2 ? 20 : 0)));
+
+                return `
+                    <div class="header" style="margin-bottom:1.5rem">
+                        <h2>Net Worth</h2>
+                        <h1 class="money">${Utils.fmtMoney(data.totalValue)}</h1>
+                        <div class="flex" style="gap:1rem; margin-top:0.5rem">
+                            <span class="${data.gain >= 0 ? 'text-green' : 'text-red'} text-sm">
+                                ${data.gain >= 0 ? '+' : ''}${Utils.fmtMoney(data.gain)} (${data.gainPercent.toFixed(2)}%)
+                            </span>
+                            <span class="text-dim text-sm">XIRR: ${xirr.toFixed(2)}%</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Wealth Distribution</h2>
+                        <canvas id="chart-alloc" height="200"></canvas>
+                    </div>
+
+                    <div class="stat-grid">
+                        <div class="card center flex-col">
+                            <h2>Health Score</h2>
+                            <div style="font-size:1.5rem; font-weight:700; color:${health > 70 ? 'var(--accent)' : 'var(--warning)'}">${health.toFixed(0)}</div>
+                        </div>
+                        <div class="card center flex-col">
+                            <h2>Invested</h2>
+                            <div class="text-sm money">${Utils.fmtMoney(data.totalInvested)}</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Top Performers</h2>
+                        ${data.items.sort((a,b) => b.gainPercent - a.gainPercent).slice(0,3).map(asset => `
+                            <div class="list-item">
+                                <div>
+                                    <div style="font-weight:600">${asset.name}</div>
+                                    <div class="text-xs text-dim">${asset.type}</div>
+                                </div>
+                                <div style="text-align:right">
+                                    <div class="money text-sm">${Utils.fmtMoney(asset.currentValue)}</div>
+                                    <div class="text-xs ${asset.gain >= 0 ? 'text-green' : 'text-red'}">${asset.gainPercent.toFixed(1)}%</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${data.items.length === 0 ? '<div class="text-dim text-sm text-center">No assets yet</div>' : ''}
+                    </div>
+                `;
+            },
+            
+            Assets() {
+                const data = MathEngine.calculatePortfolio(Store.assets, Store.transactions);
+                return `
+                    <h1>Portfolio</h1>
+                    <div style="margin-top:1rem">
+                    ${data.items.map(asset => `
+                        <div class="card" onclick="Router.go('asset-detail', '${asset.id}')">
+                            <div class="flex" style="justify-content:space-between">
+                                <span class="chip">${asset.type}</span>
+                                <span class="text-xs text-dim">${asset.units.toFixed(4)} units</span>
+                            </div>
+                            <div style="margin: 0.5rem 0; font-size:1.1rem; font-weight:600">${asset.name}</div>
+                            <div class="flex" style="justify-content:space-between; align-items:flex-end">
+                                <div>
+                                    <div class="text-xs text-dim">Current Price</div>
+                                    <div class="money text-sm">${Utils.fmtMoney(asset.currentPrice)}</div>
+                                </div>
+                                <div style="text-align:right">
+                                    <div class="money">${Utils.fmtMoney(asset.currentValue)}</div>
+                                    <div class="text-xs ${asset.gain >= 0 ? 'text-green' : 'text-red'}">${asset.gainPercent.toFixed(2)}%</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
+                    `).join('')}
+                    </div>
+                    <button class="btn btn-ghost" style="width:100%" onclick="Router.go('add-asset')">+ Add New Asset Profile</button>
+                `;
+            },
+
+            Add() {
+                return `
+                    <h1>New Transaction</h1>
+                    <form id="tx-form" style="margin-top:1.5rem" onsubmit="event.preventDefault(); Handlers.saveTx()">
+                        <div class="input-group">
                             <label>Asset</label>
-                            <select id="filter-asset">
-                                <option value="ALL">All Assets</option>
+                            <select id="tx-asset" required>
+                                <option value="">Select Asset...</option>
+                                ${Store.assets.map(a => `<option value="${a.id}">${a.name}</option>`).join('')}
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Type</label>
-                            <select id="filter-type">
-                                <option value="ALL">All Types</option>
-                                <option value="BUY">Buy</option>
-                                <option value="SELL">Sell</option>
-                                <option value="DIVIDEND">Dividend</option>
+                        <div class="flex" style="gap:1rem">
+                            <div class="input-group" style="flex:1">
+                                <label>Type</label>
+                                <select id="tx-type">
+                                    <option value="buy">Buy</option>
+                                    <option value="sell">Sell</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="flex:1">
+                                <label>Date</label>
+                                <input type="date" id="tx-date" required value="${Utils.today()}">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Units / Quantity</label>
+                            <input type="number" step="0.000001" id="tx-units" required placeholder="0.00">
+                        </div>
+                        <div class="input-group">
+                            <label>Price per Unit</label>
+                            <input type="number" step="0.01" id="tx-price" required placeholder="0.00">
+                        </div>
+                        <div class="input-group">
+                            <label>Fee (Optional)</label>
+                            <input type="number" step="0.01" id="tx-fee" placeholder="0.00">
+                        </div>
+                        <button type="submit" class="btn" style="width:100%; margin-top:1rem">Record Transaction</button>
+                    </form>
+                    <div style="margin-top:2rem; text-align:center">
+                        <span class="text-dim text-sm" onclick="Router.go('add-asset')">Need to create an asset first?</span>
+                    </div>
+                `;
+            },
+
+            AddAsset() {
+                return `
+                    <h1>Create Asset</h1>
+                    <form style="margin-top:1.5rem" onsubmit="event.preventDefault(); Handlers.saveAsset(this)">
+                        <div class="input-group">
+                            <label>Asset Name</label>
+                            <input name="name" required placeholder="e.g. Apple Inc, Gold ETF">
+                        </div>
+                        <div class="input-group">
+                            <label>Category</label>
+                            <select name="type">
+                                <option value="Equity">Equity</option>
+                                <option value="Crypto">Crypto</option>
+                                <option value="Real Estate">Real Estate</option>
+                                <option value="Gold">Gold</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Debt">Debt/Bond</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Current Market Price</label>
+                            <input name="price" type="number" step="0.01" required placeholder="0.00">
+                        </div>
+                        <button class="btn" style="width:100%">Create Asset</button>
+                    </form>
+                `;
+            },
+
+            History() {
+                const txs = [...Store.transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
+                return `
+                    <h1>Ledger</h1>
+                    <div style="margin-top:1rem">
+                        ${txs.map(t => {
+                            const asset = Store.assets.find(a => a.id === t.assetId);
+                            return `
+                                <div class="list-item">
+                                    <div>
+                                        <div style="font-weight:600">${asset ? asset.name : 'Unknown'}</div>
+                                        <div class="text-xs text-dim">${t.date}</div>
+                                    </div>
+                                    <div style="text-align:right">
+                                        <div class="money text-sm" style="color:${t.type === 'buy' ? 'var(--text)' : 'var(--accent)'}">
+                                            ${t.type === 'buy' ? '-' : '+'}${Utils.fmtMoney(t.units * t.price)}
+                                        </div>
+                                        <div class="text-xs text-dim">${t.type.toUpperCase()} @ ${t.price}</div>
+                                    </div>
+                                    <button onclick="Handlers.deleteTx('${t.id}')" style="margin-left:10px; opacity:0.5" class="btn-ghost">×</button>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            },
+
+            Settings() {
+                return `
+                    <h1>System</h1>
+                    <div class="card" style="margin-top:1rem">
+                        <div class="list-item">
+                            <span>Currency</span>
+                            <select onchange="Handlers.setCurrency(this.value)" style="width:auto; text-align:right">
+                                <option value="USD" ${Store.settings.currency==='USD'?'selected':''}>USD</option>
+                                <option value="EUR" ${Store.settings.currency==='EUR'?'selected':''}>EUR</option>
+                                <option value="GBP" ${Store.settings.currency==='GBP'?'selected':''}>GBP</option>
+                                <option value="INR" ${Store.settings.currency==='INR'?'selected':''}>INR</option>
                             </select>
                         </div>
                     </div>
-
-                    <div class="table-responsive">
-                        <table id="ledger-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                    <th>Asset</th>
-                                    <th>Amount</th>
-                                    <th>Price</th>
-                                    <th>Total</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Analysis View -->
-            <section id="view-analysis" class="view">
-                <div class="grid-2">
+                    
                     <div class="card">
-                        <h3>Risk Analysis</h3>
-                        <ul id="risk-list" class="stat-list"></ul>
+                        <h3>Data Management</h3>
+                        <p class="text-dim text-sm" style="margin-bottom:1rem">Your data is stored locally in this browser. Backup regularly.</p>
+                        <div class="flex" style="gap:1rem">
+                            <button class="btn btn-sm" onclick="Handlers.exportData()">Backup JSON</button>
+                            <label class="btn btn-sm btn-ghost" style="border:1px solid var(--surface-2)">
+                                Restore
+                                <input type="file" class="hidden" onchange="Handlers.importData(this)">
+                            </label>
+                        </div>
                     </div>
-                    <div class="card">
-                        <h3>Projections</h3>
-                        <p>Forecasted value in 10 years (at current CAGR)</p>
-                        <h2 id="proj-value">...</h2>
+
+                    <div class="card" style="border-color: var(--danger)">
+                        <h3 class="text-red">Danger Zone</h3>
+                        <button class="btn btn-sm btn-danger" style="margin-top:0.5rem" onclick="Handlers.wipe()">Factory Reset</button>
                     </div>
-                    <div class="card">
-                        <h3>Rebalancing Needed</h3>
-                        <ul id="rebalance-list" class="stat-list"></ul>
+                    
+                    <div style="text-align:center; margin-top:2rem; opacity:0.3; font-size:0.7rem">
+                        WealthVault v1.0.0<br>Secure Offline Build
                     </div>
-                    <div class="card">
-                        <h3>Opportunity Check</h3>
-                        <p>Idle Cash: <span id="opp-cash">0</span></p>
-                        <p>Lowest Performing Asset: <span id="opp-weak">None</span></p>
-                    </div>
-                </div>
-            </section>
+                `;
+            }
+        };
 
-            <!-- Goals View -->
-            <section id="view-goals" class="view">
-                <button class="btn-primary mb-2" id="btn-add-goal">Add Financial Goal</button>
-                <div id="goals-container" class="grid-2"></div>
-            </section>
+        const Handlers = {
+            async saveTx() {
+                const form = document.getElementById('tx-form');
+                const tx = {
+                    id: Utils.uuid(),
+                    assetId: document.getElementById('tx-asset').value,
+                    type: document.getElementById('tx-type').value,
+                    date: document.getElementById('tx-date').value,
+                    units: parseFloat(document.getElementById('tx-units').value),
+                    price: parseFloat(document.getElementById('tx-price').value),
+                    fee: parseFloat(document.getElementById('tx-fee').value || 0)
+                };
+                await Store.addTransaction(tx);
+                Utils.toast('Transaction Saved');
+                Router.go('dashboard');
+            },
+            async saveAsset(form) {
+                const fd = new FormData(form);
+                const asset = {
+                    id: Utils.uuid(),
+                    name: fd.get('name'),
+                    type: fd.get('type'),
+                    currentPrice: parseFloat(fd.get('price'))
+                };
+                await Store.addAsset(asset);
+                Utils.toast('Asset Created');
+                Router.go('add');
+            },
+            async deleteTx(id) {
+                if(confirm('Delete transaction?')) await Store.deleteTransaction(id);
+            },
+            async setCurrency(c) {
+                Store.settings.currency = c;
+                await DB.put('settings', {key: 'currency', value: c});
+                Router.render();
+            },
+            exportData() {
+                const data = { assets: Store.assets, transactions: Store.transactions };
+                const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `wealthvault_backup_${Utils.today()}.json`;
+                a.click();
+            },
+            importData(input) {
+                const file = input.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = e => Store.importData(e.target.result);
+                reader.readAsText(file);
+            },
+            wipe() {
+                if(confirm('ENTIRELY WIPE ALL DATA?')) {
+                    indexedDB.deleteDatabase(DB.name);
+                    location.reload();
+                }
+            }
+        };
 
-            <!-- Settings View -->
-            <section id="view-settings" class="view">
-                 <div class="card">
-                    <h3>API Configuration</h3>
-                    <p>Enter your Alpha Vantage API Key to enable automatic price updates.</p>
-                    <div class="form-group">
-                        <input type="text" id="api-key" placeholder="Enter Alpha Vantage API Key">
-                    </div>
-                    <button id="btn-save-key" class="btn-primary">Save Key</button>
-                </div>
-
-                <div class="card">
-                    <h3>Data Management</h3>
-                    <p>Your data is stored only on this device.</p>
-                    <div class="actions-row">
-                        <button id="btn-export" class="btn-outline">Export JSON Backup</button>
-                        <label class="btn-outline file-label">
-                            Import Backup <input type="file" id="file-import" hidden>
-                        </label>
-                        <button id="btn-wipe" class="btn-danger">Wipe All Data</button>
-                    </div>
-                </div>
-                <div class="card">
-                    <h3>About</h3>
-                    <p>WealthVault v1.1.0 (Offline PWA)</p>
-                    <button id="btn-show-install" class="btn-outline mt-2">Install App</button>
-                </div>
-            </section>
-
-        </main>
-        
-        <!-- Mobile FAB for Transaction -->
-        <button id="btn-fab-tx" class="fab-btn mobile-only">+</button>
-    </div>
-
-    <!-- Modals -->
-    <div id="modal-overlay" class="modal-overlay hidden"></div>
-
-    <!-- Transaction Modal -->
-    <div id="modal-tx" class="modal hidden">
-        <h3>Add Transaction</h3>
-        <form id="form-tx">
-            <div class="form-group">
-                <label>Type</label>
-                <select id="tx-type" required>
-                    <option value="BUY">Buy</option>
-                    <option value="SELL">Sell</option>
-                    <option value="DIVIDEND">Dividend/Income</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Asset</label>
-                <select id="tx-asset" required></select>
-            </div>
-            <div class="form-group">
-                <label>Date</label>
-                <input type="date" id="tx-date" required>
-            </div>
-            <div class="form-group">
-                <label>Quantity</label>
-                <input type="number" step="0.0001" id="tx-qty" required>
-            </div>
-            <div class="form-group">
-                <label>Price per Unit</label>
-                <input type="number" step="0.01" id="tx-price" required>
-            </div>
-            <div class="form-group">
-                <label>Fees</label>
-                <input type="number" step="0.01" id="tx-fees" value="0">
-            </div>
-            <div class="actions-row">
-                <button type="button" class="btn-text close-modal">Cancel</button>
-                <button type="submit" class="btn-primary">Save</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Asset Modal -->
-    <div id="modal-asset" class="modal hidden">
-        <h3>New Asset</h3>
-        <form id="form-asset">
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="asset-name" required placeholder="e.g. Apple Stock">
-            </div>
-            <div class="form-group">
-                <label>Ticker Symbol (Optional)</label>
-                <input type="text" id="asset-ticker" placeholder="e.g. AAPL">
-            </div>
-            <div class="form-group">
-                <label>Type</label>
-                <select id="asset-type">
-                    <option value="STOCK">Stock</option>
-                    <option value="ETF">ETF</option>
-                    <option value="MF">Mutual Fund</option>
-                    <option value="GOLD">Gold</option>
-                    <option value="CRYPTO">Crypto</option>
-                    <option value="CASH">Cash</option>
-                    <option value="DEBT">Liability/Loan</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Current Market Price (Initial)</label>
-                <input type="number" step="0.01" id="asset-current-price" required>
-            </div>
-            <div class="form-group">
-                <label>Target Allocation %</label>
-                <input type="number" step="1" id="asset-target-alloc" value="0">
-            </div>
-            <div class="actions-row">
-                <button type="button" class="btn-text close-modal">Cancel</button>
-                <button type="submit" class="btn-primary">Create Asset</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Goal Modal -->
-    <div id="modal-goal" class="modal hidden">
-        <h3>Set Goal</h3>
-        <form id="form-goal">
-            <div class="form-group">
-                <label>Goal Name</label>
-                <input type="text" id="goal-name" required placeholder="e.g. Retirement">
-            </div>
-            <div class="form-group">
-                <label>Target Amount</label>
-                <input type="number" step="100" id="goal-target" required>
-            </div>
-            <div class="form-group">
-                <label>Linked Assets (Optional)</label>
-                <div id="goal-assets-selector" class="checkbox-list">
-                    <!-- Populated dynamically -->
-                </div>
-                <small class="text-muted">Select assets contributing to this goal. Leave empty to use Total Net Worth.</small>
-            </div>
-            <div class="actions-row">
-                <button type="button" class="btn-text close-modal">Cancel</button>
-                <button type="submit" class="btn-primary">Save Goal</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Price Update Modal -->
-    <div id="modal-price" class="modal hidden">
-        <h3>Update Price: <span id="price-asset-name"></span></h3>
-        <form id="form-price">
-            <input type="hidden" id="price-asset-id">
-            <div class="form-group">
-                <label>New Price</label>
-                <input type="number" step="0.01" id="new-price-input" required>
-            </div>
-            <div class="actions-row">
-                <button type="button" class="btn-text close-modal">Cancel</button>
-                <button type="submit" class="btn-primary">Update</button>
-            </div>
-        </form>
-    </div>
-
-    <script src="db.js"></script>
-    <script src="calculations.js"></script>
-    <script src="ui.js"></script>
-    <script src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(reg => console.log('SW Registered'))
-                .catch(err => console.log('SW Error', err));
+        /**
+         * CORE 6: CHART ENGINE
+         * Canvas drawing logic
+         */
+        function renderCharts() {
+            const cvs = document.getElementById('chart-alloc');
+            if(!cvs) return;
+            const ctx = cvs.getContext('2d');
+            const data = MathEngine.calculatePortfolio(Store.assets, Store.transactions);
+            
+            // Group by Type
+            const map = {};
+            data.items.forEach(i => map[i.type] = (map[i.type] || 0) + i.currentValue);
+            const values = Object.values(map);
+            const keys = Object.keys(map);
+            const total = values.reduce((a,b) => a+b, 0);
+            
+            // Config
+            const dpr = window.devicePixelRatio || 1;
+            const rect = cvs.getBoundingClientRect();
+            cvs.width = rect.width * dpr;
+            cvs.height = 200 * dpr; // Fixed height
+            ctx.scale(dpr, dpr);
+            
+            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+            
+            // Draw Donut
+            let startAngle = 0;
+            const centerX = rect.width / 4; // Shift left
+            const centerY = 100;
+            const radius = 70;
+            
+            if(total === 0) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2*Math.PI);
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 20;
+                ctx.stroke();
+            } else {
+                values.forEach((v, i) => {
+                    const slice = (v / total) * 2 * Math.PI;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, startAngle, startAngle + slice);
+                    ctx.lineWidth = 20;
+                    ctx.strokeStyle = colors[i % colors.length];
+                    ctx.stroke();
+                    startAngle += slice;
+                });
+            }
+            
+            // Legend
+            const lx = rect.width / 2;
+            let ly = 40;
+            keys.forEach((k, i) => {
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fillRect(lx, ly, 12, 12);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px system-ui';
+                ctx.fillText(`${k} (${((map[k]/total)*100).toFixed(0)}%)`, lx + 20, ly + 10);
+                ly += 25;
+            });
         }
+
+        const Router = {
+            current: 'dashboard',
+            routes: {
+                'dashboard': Components.Dashboard,
+                'add': Components.Add,
+                'add-asset': Components.AddAsset,
+                'assets': Components.Assets,
+                'history': Components.History,
+                'settings': Components.Settings
+            },
+            go(route, param) {
+                this.current = route;
+                this.param = param; // Store param if needed (not fully used in this min version but ready)
+                this.render();
+                
+                // Update Nav UI
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                if(['dashboard','assets','history','settings'].includes(route)) {
+                    const idx = ['dashboard','assets','history','settings'].indexOf(route);
+                    document.querySelectorAll('.nav-item')[idx].classList.add('active');
+                }
+            },
+            render() {
+                const viewFn = this.routes[this.current] || this.routes.dashboard;
+                document.getElementById('main-view').innerHTML = viewFn();
+                if(this.current === 'dashboard') requestAnimationFrame(renderCharts);
+                
+                // Show/Hide Floating Button
+                const fab = document.querySelector('.btn-float');
+                fab.style.display = this.current === 'add' ? 'none' : 'flex';
+            }
+        };
+
+        /**
+         * CORE 7: INIT SEQUENCE
+         */
+        const App = {
+            isStandalone() {
+                return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone) || document.referrer.includes('android-app://');
+            },
+            async init() {
+                injectPWA();
+                
+                // PWA Gate Logic
+                const gate = document.getElementById('install-gate');
+                const app = document.getElementById('app');
+                const btn = document.getElementById('install-btn');
+                let deferredPrompt;
+
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                });
+
+                btn.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        if(outcome === 'accepted') window.location.reload();
+                    } else {
+                        // iOS Fallback
+                        document.getElementById('ios-instruct').classList.remove('hidden');
+                    }
+                });
+
+                if (this.isStandalone()) {
+                    gate.classList.add('hidden');
+                    app.classList.remove('hidden');
+                    await Store.init();
+                    Router.render();
+                } else {
+                    // For development testing, you can uncomment next line to bypass gate
+                    // gate.classList.add('hidden'); app.classList.remove('hidden'); Store.init().then(()=>Router.render());
+                }
+            }
+        };
+
+        window.onload = () => App.init();
+
     </script>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
